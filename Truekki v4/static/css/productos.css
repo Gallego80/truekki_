@@ -1,0 +1,324 @@
+.truekki-marketplace {
+  padding: 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: Arial, sans-serif;
+}
+
+.truekki-search-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+}
+
+.truekki-search-input,
+.truekki-select,
+.truekki-btn-free,
+.truekki-btn-reset {
+  padding: 0.5rem 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.truekki-btn-free {
+  background-color: #f0f0f0;
+  cursor: pointer;
+}
+
+.truekki-btn-reset {
+  background-color: rgb(22, 81, 168);
+  color: white;
+  cursor: pointer;
+}
+
+.truekki-products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.truekki-product-card {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  overflow: hidden;
+  background-color: white;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.1);
+  transition: transform 0.2s ease;
+}
+
+.truekki-product-card:hover {
+  transform: scale(1.05);
+}
+
+.truekki-product-card img {
+  width: 100%;
+  display: block;
+}
+
+.truekki-product-info {
+  padding: 0.5rem;
+}
+
+.truekki-product-info h3 {
+  margin: 0.3rem 0;
+  font-size: 1.1rem;
+}
+
+.truekki-product-info p {
+  margin: 0.2rem 0;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+/* Responsive pequeño */
+@media (max-width: 600px) {
+  .truekki-search-filters {
+    flex-direction: column;
+  }
+
+  .truekki-search-input,
+  .truekki-select,
+  .truekki-btn-free,
+  .truekki-btn-reset {
+    width: 100%;
+  }
+}
+
+/* Reset y base */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f9f9f9;
+  color: #333;
+}
+
+/* Navbar */
+.navbar {
+  background-color: #0052cc; /* Azul Truekki */
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.5rem;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* Logo */
+.navbar-logo img {
+  height: 40px;
+}
+
+/* Menú principal */
+.navbar-menu {
+  list-style: none;
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+}
+
+/* Links simples (sin dropdown) */
+.navbar-menu .simple-link {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s;
+}
+
+.navbar-menu .simple-link:hover {
+  color: #ffdd57;
+}
+
+/* Dropdown */
+.dropdown {
+  position: relative;
+}
+
+.dropdown > a {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: color 0.3s;
+}
+
+.dropdown > a:hover {
+  color: #ffdd57;
+}
+
+/* Flecha para dropdown */
+.dropdown > a::after {
+  content: '▼';
+  font-size: 0.6rem;
+  margin-left: 0.25rem;
+  transform-origin: center;
+  transition: transform 0.3s ease;
+}
+
+.dropdown.open > a::after {
+  transform: rotate(180deg);
+}
+
+/* Dropdown menú oculto */
+.dropdown-menu {
+  position: absolute;
+  top: 120%;
+  left: 0;
+  background-color: #0041a8; /* Azul más oscuro */
+  padding: 0.5rem 0;
+  border-radius: 4px;
+  min-width: 160px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 999;
+}
+
+/* Mostrar dropdown al hover en desktop */
+.dropdown:hover .dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* Dropdown items */
+.dropdown-menu li {
+  padding: 0;
+}
+
+.dropdown-menu li a {
+  display: block;
+  padding: 0.5rem 1rem;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 500;
+  transition: background-color 0.3s;
+}
+
+.dropdown-menu li a:hover {
+  background-color: #00338a;
+}
+
+
+.btn {
+  padding: 0.5rem 1.25rem;
+  border-radius: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+  text-align: rigth;
+}
+
+.btn-login {
+  background-color: transparent;
+  color: #fff;
+  border: 2px solid #fff;
+}
+
+.btn-login:hover {
+  background-color: #ffdd57;
+  color: #0052cc;
+  border-color: #ffdd57;
+}
+
+
+.btn-signup:hover {
+  background-color: #e6c849;
+}
+
+/* Hamburguesa - solo visible en móvil */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.hamburger div {
+  width: 25px;
+  height: 3px;
+  background-color: #fff;
+  border-radius: 2px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .navbar {
+    flex-wrap: wrap;
+    padding: 0.75rem 1rem;
+  }
+
+  /* Ocultar menú desktop */
+  .navbar-menu {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    background-color: #0052cc;
+    margin-top: 0.5rem;
+    border-radius: 6px;
+  }
+
+  /* Mostrar menú cuando activo */
+  .navbar-menu.active {
+    display: flex;
+  }
+
+  .navbar-menu li {
+    width: 100%;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .navbar-menu li:last-child {
+    border-bottom: none;
+  }
+
+  .dropdown-menu {
+    position: static;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    background-color: #0041a8;
+    border-radius: 0;
+    box-shadow: none;
+    padding-left: 1rem;
+  }
+
+  .dropdown.open .dropdown-menu {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .dropdown-menu li a {
+    padding: 0.5rem 0;
+  }
+
+  /* Botones se apilan */
+  .navbar-buttons {
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    margin-top: 0.75rem;
+  }
+
+  /* Mostrar hamburguesa */
+  .hamburger {
+    display: flex;
+  }
+}

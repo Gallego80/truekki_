@@ -1,0 +1,64 @@
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+    </head>
+    <body>
+    <!-- Panel izquierdo con collage -->
+    <div class="left-panel"></div>
+
+    <!-- Panel derecho con formulario -->
+    <div class="right-panel">
+        <!-- Avatar -->
+         <div class="right-panel">
+            <div class="avatar">👤</div>
+        </div>
+        <div class="login-title">LOGIN</div>
+
+        <!-- Formulario -->
+        <form method="POST">
+
+        <div class="input-group">
+            <i>👤</i>
+            <input type="text" name="email" placeholder="Email" required>
+        </div>
+
+        <div class="input-group">
+            <i>🔒</i>
+            <input type="password" id="password" name="password" placeholder="Password" required>
+            <span class="toggle-password" data-target="password">
+            <img src="/static/img/ojo-cerrado.png" class="ojo" alt="Ver contraseña">
+            </span>
+        </div>
+
+        <div class="button-group">
+            <button type="submit" class="btn">LOGIN</button>
+            <button class="btn1">
+            <a href="/registro">¿No tienes cuenta?</a>
+            </button>
+        </div>
+        </form>
+    </div>
+
+    <!-- SCRIPT para mostrar/ocultar contraseña -->
+    <script>
+        document.querySelectorAll(".toggle-password").forEach(toggle => {
+        toggle.addEventListener("click", function () {
+            const inputId = this.getAttribute("data-target");
+            const input = document.getElementById(inputId);
+            const img = this.querySelector("img");
+
+            if (input.type === "password") {
+            input.type = "text";
+            img.src = "/static/img/ojo.png"; // ojo abierto
+            } else {
+            input.type = "password";
+            img.src = "/static/img/ojo-cerrado.png"; // ojo cerrado
+            }
+        });
+        });
+    </script>
+    </body>
+    </html>
