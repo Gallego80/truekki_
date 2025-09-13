@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/productos.css') }}" />
+  <title>Marketplace</title>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-logo">
+      <img src="https://truekki.com/wp-content/uploads/2023/01/truekki-logo.png" alt="Logo Truekki" />
+    </div>
+    <ul class="navbar-menu" id="navbarMenu">
+      <a href="/intercambio" class="simple-link">Intercambio</a>
+      <a href="#" class="simple-link">Contacto</a>
+    </ul>
+    <div class="navbar-buttons">
+      <a href="/perfil" class="btn btn-login">Perfil</a>
+      <a href="/logout" class="btn btn-login">Cerrar sesión</a>
+    </div>
+  </nav>
+
+  <section class="truekki-marketplace">
+    <div class="truekki-search-filters">
+      <input type="text" placeholder="Buscar en Marketplace" class="truekki-search-input" id="buscar-input" />
+
+      <select id="categoria-select" class="truekki-select">
+        <option value="ropa">Ropa</option>
+        <option value="electronica">Electrónica</option>
+        <option value="vehiculos">Libros</option>
+      </select>
+
+      <select id="precio-select" class="truekki-select">
+        <option value="">Precio</option>
+        <option value="menor">Menor a mayor</option>
+        <option value="mayor">Mayor a menor</option>
+      </select>
+
+      <button id="restablecer-btn" class="truekki-btn-reset">Restablecer</button>
+    </div>
+
+    <div class="truekki-products-grid" id="productos-container">
+      <!-- Los productos se cargarán aquí dinámicamente -->
+    </div>
+  </section>
+
+<script>
+  // Carga productos desde la API y los renderiza con atributos data para filtro
+  fetch("/api/productos")
+    .then(response => response.json())
+    .then(productos => {
+      const container = document.getElementById("productos-container");
+      container.innerHTML = ''; // Limpiar
+
+      productos.forEach(producto => {
+        const card = document.createElement("div");
+        card.className = "truekki-product-card";
+
+        // Usar data-categoria y data-precio para filtro
+        card.setAttribute("data-categoria", producto.categoria || '');
+        card.setAttribute("data-precio", producto.precio || 0);
+        card.setAttribute("data-nombre", producto.nombre.toLowerCase());
+
+        card.innerHTML = `
+          <img src="/static/img/camisa.webp" alt="${producto.nombre}" />
+          <div class="truekki-product-info">
+            <h3>${producto.nombre}</h3>
+            <p>${producto.precio} COP</p>
+            <p>${producto.descripcion || ''}</p>
+            <p>${producto.fecha_creacion ? new Date(producto.fecha_creacion).toLocaleDateString() : ''} - ${producto.categoria || ''}</p>
+            <p>Estado: ${producto.estado}</p>
+            <a href="/producto" class="detalle-link">ver a detalle</a>
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+    })
+    .catch(error => {
+      console.error("Error cargando productos:", error);
+      const container = document.getElementById("productos-container");
+      container.innerHTML = "<p>Error al cargar productos.</p>";
+    });
+
+  // Función para filtrar productos según filtros seleccionados
+  document.addEventListener('DOMContentLoaded', () => {
+    const categoriaSelect = document.getElementById('categoria-select');
+    const precioSelect = document.getElementById('precio-select');
+    const restablecerBtn = document.getElementById('restablecer-btn');
+    const buscarInput = document.getElementById('buscar-input');
+    const productosGrid = document.getElementById('productos-container');
+
+    function filtrarProductos() {
+      const categoria = categoriaSelect.value.toLowerCase();
+      const precioOrden = precioSelect.value;
+      const busqueda = buscarInput.value.toLowerCase();
+
+      let productos = Array.from(productosGrid.querySelectorAll('.truekki-product-card'));
+
+      // Filtrar por categoría y búsqueda
+      productos.forEach(producto => {
+        const cat = producto.getAttribute('data-categoria').toLowerCase();
+        const nombre = producto.getAttribute('data-nombre');
+
+        const coincideCategoria = !categoria || cat === categoria;
+        const coincideBusqueda = !busqueda || nombre.includes(busqueda);
+
+        producto.style.display = (coincideCategoria && coincideBusqueda) ? 'block' : 'none';
+      });
+
+      // Ordenar por precio si se seleccionó
+      if (precioOrden) {
+        productos = productos.filter(p => p.style.display !== 'none');
+        productos.sort((a, b) => {
+          const precioA = parseFloat(a.getAttribute('data-precio'));
+          const precioB = parseFloat(b.getAttribute('data-precio'));
+          return precioOrden === 'menor' ? precioA - precioB : precioB - precioA;
+        });
+
+        productos.forEach(producto => productosGrid.appendChild(producto));
+      }
+    }
+
+    categoriaSelect.addEventListener('change', filtrarProductos);
+    precioSelect.addEventListener('change', filtrarProductos);
+    buscarInput.addEventListener('input', filtrarProductos);
+    restablecerBtn.addEventListener('click', () => {
+      categoriaSelect.value = '';
+      precioSelect.value = '';
+      buscarInput.value = '';
+      filtrarProductos();
+    });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Menú Truekki</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/menu.css') }}" />
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="navbar-logo">
+      <img src="https://truekki.com/wp-content/uploads/2023/01/truekki-logo.png" alt="Logo Truekki" />
+    </div>
+
+    <ul class="navbar-menu" id="navbarMenu">
+        <a href="/productos" class="simple-link">Ver productos</a>
+        <a href="#" class="simple-link">Contacto</a>
+        </ul>
+    <div class="navbar-buttons">
+      <a href="/perfil" class="btn btn-login">Perfil</a>
+      <a href="/logout" class="btn btn-login">Cerrar sesión</a>
+    </div>
+  </nav>
+
+  <script>
+    const hamburger = document.getElementById('hamburger');
+    const navbarMenu = document.getElementById('navbarMenu');
+
+    hamburger.addEventListener('click', () => {
+      navbarMenu.classList.toggle('active');
+    });
+
+    // Dropdown clic en móvil
+    const dropdowns = document.querySelectorAll('.dropdown > a');
+
+    dropdowns.forEach(dropdown => {
+      dropdown.addEventListener('click', e => {
+        if (window.innerWidth <= 768) {
+          e.preventDefault();
+          const parent = dropdown.parentElement;
+          parent.classList.toggle('open');
+        }
+      });
+    });
+  </script>
+
+</body>
+</html>
