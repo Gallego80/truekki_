@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/chat.css">
+    <title>chat</title>
+</head>
+<body>
+<!-- Botón hamburguesa -->
+  <button class="toggle-btn">☰</button>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <a href="./barra.html">Explorar</a>
+    <a href="#">Publicar</a>
+    <a href="#">Notificaciones</a>
+    <a href="#">Historial</a>
+    <a href="#">Perfil</a>
+    <a href="#">Ayuda</a>
+  </div>
+
+  <!-- Contenedor principal -->
+  <div class="main-container">
+    <!-- Header -->
+    <header class="header">
+      <div class="logo">TRUEKKI</div>
+      <div class="search-bar">
+        <input type="text" placeholder="Buscar...">
+      </div>
+      <div class="icons">
+        <span></span>
+        <span>♡</span>
+        <span></span>
+      </div>
+    </header>
+
+    <!-- Cuerpo del chat -->
+    <div class="chat-container">
+      <!-- Lista de usuarios -->
+      <div class="user-list">
+        <input type="text" placeholder="Buscar...">
+        <ul>
+          <li class="active">Juan Pérez</li>
+          <li>Diego Gallego</li>
+          <li>Laura Inchima</li>
+        </ul>
+      </div>
+
+      <!-- Ventana de chat -->
+      <div class="chat-window">
+        <div class="chat-header">Juan Pérez</div>
+        <div class="chat-messages">
+          <div class="message sent">¡Hola! ¿Cómo estás?</div>
+          <div class="message received">Hola, bien ¿y tú?</div>
+          <div class="message sent">Estoy interesado en tu artículo</div>
+        </div>
+        <div class="chat-input">
+          <input type="text" placeholder="Escribe un mensaje...">
+          <button>Enviar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.querySelector(".toggle-btn").addEventListener("click", () => {
+      document.querySelector(".sidebar").classList.toggle("active");
+    });
+  </script>
+</body>
+</html>
