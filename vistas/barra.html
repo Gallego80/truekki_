@@ -3,184 +3,339 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TRUEKKI</title>
+  <title>TRUEKKI - Marketplace</title>
   <link rel="stylesheet" href="../estilos/barra.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-<div class="menu-btn" onclick="openMenu()">☰</div>
 
-<div class="sidebar" id="sidebar">
-  <span class="close-btn" onclick="closeMenu()">✖</span>
-  <a href="#">Explorar</a>
-  <a href="publicar_producto.html">Publicar</a>
-  <a href="#">Notificaciones</a>
-  <a href="./chat.html">Chats</a>
-  <a href="#">Historial</a>
-  <a href="perfil_vendedor.html">Perfil</a>
-  <a href="./bloqueo.html">Bloquear Usuario</a>
-  <a href="./reportar.html">Reportar Usuario</a>
-  <a href="#">Ayuda</a>
-</div>
+  <!-- Barra superior -->
+  <header>
+    <div class="header-content"> 
+      <h1>TRUEKKI</h1>
+      <div class="search-bar">
+        <input type="text" placeholder="Buscar productos..." id="search-input">
+        <button onclick="searchProducts()"><i class="fas fa-search"></i></button>
+      </div>
+      <div class="icons">
+        <span class="icon" onclick="showSection('favorites')"><i class="fas fa-heart"></i></span>
+        <span class="icon" onclick="showSection('messages')"><i class="fas fa-comment"></i></span>
+        <span class="icon menu-btn" onclick="openMenu()"><i class="fas fa-bars"></i></span>
+      </div>
+    </div>
+  </header>
 
-<div class="overlay" id="overlay" onclick="closeMenu()"></div>
-
-<header>
-  <h1>TRUEKKI</h1>
-  <div class="search-bar">
-    <input type="text" placeholder="Buscar...">
-    <button>+</button>
-  </div>
-<!-- Botón para mostrar/ocultar filtros -->
-<div class="filter-toggle" onclick="toggleFilters()">⋮</div>
-
-<!-- Filtros ocultos al principio -->
-<div id="filters" class="hidden">
-  <select id="categoryFilter">
-    <option value="all">Todas las categorías</option>
-    <option value="ropa">Ropa</option>
-    <option value="tecnologia">Tecnología</option>
-    <option value="libros">Libros</option>
-  </select>
-
-  <select id="priceFilter">
-    <option value="all">Todos los precios</option>
-    <option value="low">menor a 20.000 COP</option>
-    <option value="medium">$100.000 COP - $500.000 COP</option>
-    <option value="high">Mayor a $500.000</option>
-  </select>
-
-  <select id="conditionFilter">
-    <option value="all">Todos los estados</option>
-    <option value="nuevo">Nuevo</option>
-    <option value="usado">Usado</option>
-  </select>
-</div>
-<br><br><br>
-  <div class="icons">
-    <span>♡</span>
-    <span>💬</span>
-    <br>
-  </div>
-  <br><br><br>
-</header>
-
-<section class="products">
-  <!-- Producto 1 -->
-  <div class="card producto" data-category="ropa" data-price="150" data-condition="nuevo">
-    <a class="card-link" href="#"></a>
-    <img src="https://i.pinimg.com/736x/8e/8d/19/8e8d19acba343386d4cc1f917bf80995.jpg" alt="Jeans">
-    <div class="actions"><span class="heart">❤</span><span class="cart">💬</span></div>
-    <p>Jeanss Baggy</p>
+  <!-- Menú lateral -->
+  <div class="sidebar" id="sidebar">
+    <span class="close-btn" onclick="closeMenu()">✖</span>
+    <div class="user-info">
+      <div class="user-avatar" id="sidebar-avatar">US</div>
+      <div class="user-name" id="sidebar-name">Usuario</div>
+    </div>
+    <a href="publicar_producto.html"><i class="fas fa-plus-circle"></i> Publicar</a>
+    <a href="#"><i class="fas fa-bell"></i> Notificaciones</a>
+    <a href="./chat.html"><i class="fas fa-comments"></i> Chats</a>
+    <a href="historial.html"><i class="fas fa-history"></i> Historial</a>
+    <a href="perfil.html"><i class="fas fa-user"></i> Perfil</a>
+    <a href="#"><i class="fas fa-question-circle"></i> Ayuda</a>
+    <a href="subastas.html"><i class="fas fa-gavel"></i> Subastas</a>
+    <a href="./bloqueo.html">bloquear usuarios</a>
+    <a href="./reportar.html">reportar usuarios</a>
+    <a href="./catalogo.html">Mis Productos</a>
+    <button onclick="logout()" class="cerrar-sesion"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</button>
   </div>
 
-  <!-- Producto 2 -->
-  <div class="card producto" data-category="ropa" data-price="120" data-condition="usado">
-    <a class="card-link" href="detalle_producto.html?product=2"></a>
-    <img src="https://static.wixstatic.com/media/e3c921_72852877781f47609ed2099aeb792674~mv2.jpg/v1/fit/w_500,h_500,q_90/file.jpg" alt="Corset">
-    <div class="actions"><span class="heart">❤</span><span class="cart">💬</span></div>
-    <p>Corset Cafe</p>
+  <!-- Overlay -->
+  <div class="overlay" id="overlay" onclick="closeMenu()"></div>
+
+  <!-- Filtros -->
+  <div class="filters-container">
+    <div class="container">
+      <div class="filters">
+        <select id="filter-category">
+          <option value="">Todas las categorías</option>
+          <option value="ropa">Ropa</option>
+          <option value="tecnologia">Tecnología</option>
+          <option value="hogar">Hogar</option>
+        </select>
+        
+        <select id="filter-price">
+          <option value="">Todos los precios</option>
+          <option value="0-50000">$0 - $50.000</option>
+          <option value="50000-200000">$50.000 - $200.000</option>
+          <option value="200000-500000">$200.000 - $500.000</option>
+          <option value="500000+">$500.000+</option>
+        </select>
+        
+        <select id="filter-sort">
+          <option value="newest">Más recientes</option>
+          <option value="oldest">Más antiguos</option>
+          <option value="price_asc">Precio: menor a mayor</option>
+          <option value="price_desc">Precio: mayor a menor</option>
+        </select>
+        
+        <button class="btn-filter" onclick="applyFilters()">Aplicar Filtros</button>
+      </div>
+    </div>
   </div>
 
-  <!-- Producto 3 -->
-  <div class="card producto" data-category="tecnologia" data-price="900" data-condition="nuevo">
-    <a class="card-link" href="producto.html"></a>
-    <img src="https://th.bing.com/th/id/OIP.vewfenftbHKrLMt4yaq72wHaHa" alt="Portatil Gamer">
-    <div class="actions"><span class="heart">❤</span><span class="cart">💬</span></div>
-    <p>Portatil Gamer</p>
-  </div>
+  <!-- Productos -->
+  <main class="container">
+    <section class="products-grid" id="products-grid">
+      <div class="loading-state">
+        <i class="fas fa-spinner fa-spin"></i>
+        <p>Cargando productos...</p>
+      </div>
+    </section>
+  </main>
 
-  <!-- Producto 4 -->
-  <div class="card producto" data-category="libros" data-price="50" data-condition="usado">
-    <a class="card-link" href="detalle_producto.html?product=4"></a>
-    <img src="https://tse3.mm.bing.net/th/id/OIP.X81k0hwApMg-aeIyPZJ3FwHaLH" alt="Libro 100 Años">
-    <div class="actions"><span class="heart">❤</span><span class="cart">💬</span></div>
-    <p>Libro Original 100 Años de Soledad</p>
-  </div>
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <h3>TRUEKKI</h3>
+          <p>Plataforma de intercambios y ventas de productos únicos.</p>
+        </div>
+        
+        <div class="footer-section">
+          <h3>Enlaces rápidos</h3>
+          <ul>
+            <li><a href="#">Acerca de nosotros</a></li>
+            <li><a href="#">Términos y condiciones</a></li>
+            <li><a href="#">Política de privacidad</a></li>
+            <li><a href="#">Contacto</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-section">
+          <h3>Categorías populares</h3>
+          <ul>
+            <li><a href="#" onclick="filterByCategory('tecnologia')">Tecnología</a></li>
+            <li><a href="#" onclick="filterByCategory('libros')">Libros</a></li>
+            <li><a href="#" onclick="filterByCategory('ropa')">Ropa</a></li>
+            <li><a href="#" onclick="filterByCategory('hogar')">Hogar</a></li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="copyright">
+        &copy; 2023 TRUEKKI - Todos los derechos reservados
+      </div>
+    </div>
+  </footer>
 
-  <!-- Agrega los demás productos igual usando data-category, data-price y data-condition -->
-</section>
+  <!-- Scripts -->
+  <script src="../js/auth.js"></script>
+  <script>
+    // Variables globales
+    let allProducts = [];
+    let currentUser = null;
 
-<script>
-  const sidebar = document.getElementById("sidebar");
-  const overlay = document.getElementById("overlay");
-
-  function openMenu() {
-    sidebar.style.width = "250px";
-    overlay.style.display = "block";
-  }
-
-  function closeMenu() {
-    sidebar.style.width = "0";
-    overlay.style.display = "none";
-  }
-
-  document.querySelectorAll('.heart, .cart').forEach(icon => {
-    icon.addEventListener('click', function(e) {
-      e.stopPropagation();
-      e.preventDefault();
-      alert('Funcionalidad de ' + (this.classList.contains('heart') ? 'favoritos' : 'carrito') + ' activada');
-    });
-  });
-
-  // Filtros
-  const filters = {
-    category: "all",
-    price: "all",
-    condition: "all"
-  };
-
-  document.getElementById("categoryFilter").addEventListener("change", (e) => {
-    filters.category = e.target.value;
-    applyFilters();
-  });
-
-  document.getElementById("priceFilter").addEventListener("change", (e) => {
-    filters.price = e.target.value;
-    applyFilters();
-  });
-
-  document.getElementById("conditionFilter").addEventListener("change", (e) => {
-    filters.condition = e.target.value;
-    applyFilters();
-  });
-
-  function applyFilters() {
-    const products = document.querySelectorAll(".producto");
-
-    products.forEach(product => {
-      const category = product.getAttribute("data-category");
-      const price = parseFloat(product.getAttribute("data-price"));
-      const condition = product.getAttribute("data-condition");
-
-      let visible = true;
-
-      if (filters.category !== "all" && category !== filters.category) {
-        visible = false;
+    // Cargar datos al iniciar
+    document.addEventListener('DOMContentLoaded', async function() {
+      // Verificar autenticación
+      if (!checkAuth()) {
+        return;
       }
-
-      if (filters.price === "low" && price >= 100) visible = false;
-      if (filters.price === "medium" && (price < 100 || price > 500)) visible = false;
-      if (filters.price === "high" && price <= 500) visible = false;
-
-      if (filters.condition !== "all" && condition !== filters.condition) {
-        visible = false;
-      }
-
-      product.style.display = visible ? "block" : "none";
+      
+      // Obtener usuario del localStorage
+      currentUser = getCurrentUser();
+      
+      // Actualizar información del usuario en el sidebar
+      updateUserInfo();
+      
+      // Cargar productos
+      await loadProducts();
     });
-  }
 
+    // Actualizar información del usuario en el sidebar
+    function updateUserInfo() {
+      document.getElementById('sidebar-avatar').textContent = getInitials(currentUser.nombre);
+      document.getElementById('sidebar-name').textContent = currentUser.nombre;
+    }
 
+    // Obtener iniciales del nombre
+    function getInitials(name) {
+      return name.split(' ').map(word => word[0]).join('').toUpperCase().substring(0, 2);
+    }
 
-  function toggleFilters() {
-    const filters = document.getElementById("filters");
-    filters.classList.toggle("hidden");
-  }
+    // Cargar productos desde la API
+    async function loadProducts() {
+      try {
+        const response = await fetch('http://localhost:5000/productos');
+        const result = await response.json();
+        
+        if (result.success) {
+          allProducts = result.productos;
+          renderProducts(allProducts);
+        } else {
+          showError('Error al cargar productos');
+        }
+      } catch (error) {
+        console.error('Error cargando productos:', error);
+        showError('Error de conexión al cargar productos');
+      }
+    }
 
+    // Renderizar productos
+    function renderProducts(products) {
+      const productsGrid = document.getElementById('products-grid');
+      
+      if (products.length === 0) {
+        productsGrid.innerHTML = `
+          <div class="empty-state">
+            <i class="fas fa-search"></i>
+            <h3>No se encontraron productos</h3>
+            <p>Intenta ajustar los filtros de búsqueda</p>
+          </div>
+        `;
+        return;
+      }
+      
+      productsGrid.innerHTML = products.map(product => `
+        <div class="product-card">
+          <a class="card-link" href="producto.html?id=${product.id_producto}"></a>
+          <div class="product-image">
+            ${product.foto ? 
+              `<img src="http://localhost:5000/imagen-producto/${product.id_producto}" 
+                   alt="${product.titulo}" 
+                   onerror="this.style.display='none'; this.parentElement.innerHTML='${getInitials(product.titulo)}'">` : 
+              getInitials(product.titulo)
+            }
+            <div class="product-overlay">
+              <button class="btn-wishlist" onclick="toggleWishlist(event, ${product.id_producto})">
+                <i class="far fa-heart"></i>
+              </button>
+            </div>
+          </div>
+          <div class="product-info">
+            <h3 class="product-title">${product.titulo}</h3>
+            <div class="product-category">${product.categoria}</div>
+            <div class="product-price">${product.precio ? `$${parseInt(product.precio).toLocaleString()}` : 'Intercambio'}</div>
+            <div class="product-location">
+              <i class="fas fa-map-marker-alt"></i> ${product.ciudad}
+            </div>
+            <div class="product-actions">
+              <button class="btn btn-outline" onclick="contactSeller(event, ${product.id_usuario})">Contactar</button>
+              <button class="btn btn-primary" onclick="viewProduct(${product.id_producto})">Ver detalles</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
 
+    // Aplicar filtros
+    function applyFilters() {
+      const category = document.getElementById('filter-category').value;
+      const priceRange = document.getElementById('filter-price').value;
+      const sortBy = document.getElementById('filter-sort').value;
+      
+      let filteredProducts = [...allProducts];
+      
+      // Filtrar por categoría
+      if (category) {
+        filteredProducts = filteredProducts.filter(product => product.categoria === category);
+      }
+      
+      // Filtrar por precio
+      if (priceRange) {
+        const [min, max] = priceRange.split('-').map(val => val === '+' ? Infinity : parseInt(val));
+        filteredProducts = filteredProducts.filter(product => {
+          const price = product.precio || 0;
+          return price >= min && (max === Infinity || price <= max);
+        });
+      }
+      
+      // Ordenar
+      switch(sortBy) {
+        case 'newest':
+          filteredProducts.sort((a, b) => new Date(b.fecha_publicacion) - new Date(a.fecha_publicacion));
+          break;
+        case 'oldest':
+          filteredProducts.sort((a, b) => new Date(a.fecha_publicacion) - new Date(b.fecha_publicacion));
+          break;
+        case 'price_asc':
+          filteredProducts.sort((a, b) => (a.precio || 0) - (b.precio || 0));
+          break;
+        case 'price_desc':
+          filteredProducts.sort((a, b) => (b.precio || 0) - (a.precio || 0));
+          break;
+      }
+      
+      renderProducts(filteredProducts);
+    }
 
-</script>
+    // Filtrar por categoría desde enlace
+    function filterByCategory(category) {
+      document.getElementById('filter-category').value = category;
+      applyFilters();
+    }
 
+    // Buscar productos
+    function searchProducts() {
+      const searchTerm = document.getElementById('search-input').value.toLowerCase();
+      
+      if (!searchTerm) {
+        renderProducts(allProducts);
+        return;
+      }
+      
+      const filteredProducts = allProducts.filter(product =>
+        product.titulo.toLowerCase().includes(searchTerm) ||
+        product.descripcion.toLowerCase().includes(searchTerm) ||
+        product.categoria.toLowerCase().includes(searchTerm)
+      );
+      
+      renderProducts(filteredProducts);
+    }
 
+    // Ver producto
+    function viewProduct(productId) {
+      window.location.href = `producto.html?id=${productId}`;
+    }
+
+    // Contactar vendedor
+    function contactSeller(event, userId) {
+      event.stopPropagation();
+      alert('Funcionalidad de contacto con el vendedor será implementada pronto');
+    }
+
+    // Alternar lista de deseos
+    function toggleWishlist(event, productId) {
+      event.stopPropagation();
+      event.preventDefault();
+      alert('Funcionalidad de lista de deseos será implementada pronto');
+    }
+
+    // Menú lateral
+    const sidebar = document.getElementById("sidebar");
+    const overlay = document.getElementById("overlay");
+
+    function openMenu() {
+      sidebar.style.width = "280px";
+      overlay.style.display = "block";
+    }
+
+    function closeMenu() {
+      sidebar.style.width = "0";
+      overlay.style.display = "none";
+    }
+
+    // Mostrar error
+    function showError(message) {
+      const productsGrid = document.getElementById('products-grid');
+      productsGrid.innerHTML = `
+        <div class="empty-state">
+          <i class="fas fa-exclamation-triangle"></i>
+          <h3>Error</h3>
+          <p>${message}</p>
+          <button class="btn btn-primary" onclick="loadProducts()">Reintentar</button>
+        </div>
+      `;
+    }
+
+    
+  </script>
 </body>
 </html>

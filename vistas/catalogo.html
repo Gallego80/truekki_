@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TRUEKKI - Mis Productos</title>
+  <link rel="stylesheet" href="../css/catalogo.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <!-- Barra superior -->
+  <header>
+    <div class="header-content">
+      <h1>TRUEKKI</h1>
+      <div class="search-bar">
+        <input type="text" placeholder="Buscar en mis productos..." id="search-input">
+        <button id="btn-search"><i class="fas fa-search"></i></button>
+      </div>
+      <div class="icons">
+        <span class="icon" id="btn-favorites"><i class="fas fa-heart"></i></span>
+        <span class="icon" id="btn-messages"><i class="fas fa-comment"></i></span>
+        <span class="icon menu-btn" id="btn-menu"><i class="fas fa-bars"></i></span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Menú lateral -->
+  <div class="sidebar" id="sidebar">
+    <span class="close-btn" id="btn-close">✖</span>
+    <div class="user-info">
+      <div class="user-avatar" id="sidebar-avatar">US</div>
+      <div class="user-name" id="sidebar-name">Usuario</div>
+    </div>
+    <a href="./barra.html">Inicio</a>
+    <a href="publicar_producto.html"><i class="fas fa-plus-circle"></i> Publicar</a>
+    <a href="./chat.html"><i class="fas fa-comments"></i> Chats</a>
+    <a href="perfil.html"><i class="fas fa-user"></i> Perfil</a>
+    <button id="btn-logout" class="cerrar-sesion"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</button>
+  </div>
+
+  <!-- Overlay -->
+  <div class="overlay" id="overlay"></div>
+
+  <!-- Título -->
+  <main class="container">
+    <h2 style="margin: 30px 0; text-align:center;">Mis Productos Publicados</h2>
+
+    <!-- Grid de productos -->
+    <section class="products-grid" id="my-products-grid">
+      <div class="loading-state">
+        <i class="fas fa-spinner fa-spin"></i>
+        <p>Cargando tus productos...</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <h3>TRUEKKI</h3>
+          <p>Plataforma de intercambios y ventas de productos únicos.</p>
+        </div>
+        <div class="footer-section">
+          <h3>Enlaces rápidos</h3>
+          <ul>
+            <li><a href="catalogo.html">Catálogo</a></li>
+            <li><a href="publicar_producto.html">Publicar</a></li>
+            <li><a href="perfil.html">Perfil</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="copyright">
+        &copy; 2023 TRUEKKI - Todos los derechos reservados
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="../js/auth.js"></script>
+  <script>
+document.addEventListener("DOMContentLoaded", async () => {
+  const sidebar = document.getElementById("sidebar");
+  const overlay = document.getElementById("overlay");
+
+  // === Funciones ===
+  function openMenu() {
+    sidebar.style.width = "280px";
+    overlay.style.display = "block";
+  }
+
+  function closeMenu() {
+    sidebar.style.width = "0";
+    overlay.style.display = "none";
+  }
+
+  function searchMyProducts() {
+    const query = document.getElementById("search-input").value.toLowerCase();
+    const cards = document.querySelectorAll(".product-card");
+    cards.forEach(card => {
+      const title = card.querySelector("h3").textContent.toLowerCase();
+      card.style.display = title.includes(query) ? "block" : "none";
+    });
+  }
+
+  function showSection(section) {
+    alert("Sección seleccionada: " + section);
+  }
+
+  function logout() {
+    alert("Sesión cerrada");
+    window.location.href = "login.html";
+  }
+
+  // === Eventos ===
+  document.getElementById("btn-menu").addEventListener("click", openMenu);
+  document.getElementById("btn-close").addEventListener("click", closeMenu);
+  overlay.addEventListener("click", closeMenu);
+  document.getElementById("btn-search").addEventListener("click", searchMyProducts);
+  document.getElementById("btn-favorites").addEventListener("click", () => showSection("favorites"));
+  document.getElementById("btn-messages").addEventListener("click", () => showSection("messages"));
+  document.getElementById("btn-logout").addEventListener("click", logout);
+
+  // === Cargar productos ===
+  try {
+    const response = await fetch("http://localhost:5000/productos");
+    const data = await response.json();
+
+    const container = document.getElementById("my-products-grid");
+    container.innerHTML = "";
+
+    if (!data.success || data.productos.length === 0) {
+      container.innerHTML = "<p>No hay productos publicados todavía.</p>";
+      return;
+    }
+
+    data.productos.forEach(producto => {
+      const card = document.createElement("div");
+      card.classList.add("product-card");
+
+      card.innerHTML = `
+        <img src="http://localhost:5000/imagen-producto/${producto.id_producto}" 
+             alt="${producto.titulo}" />
+        <h3>${producto.titulo}</h3>
+        <p class="precio">$${producto.precio}</p>
+        <div class="card-buttons">
+          <button class="btn-ver" onclick="verDetalles(${producto.id_producto})">Ver detalles</button>
+          <button class="btn-editar" onclick="editarProducto(${producto.id_producto})">Modificar</button>
+        </div>
+      `;
+
+      container.appendChild(card);
+    });
+  } catch (error) {
+    console.error("Error cargando productos:", error);
+    document.getElementById("my-products-grid").innerHTML = "<p>Error al cargar productos.</p>";
+  }
+});
+
+// === Funciones para botones ===
+function verDetalles(id) {
+  // Redirigir a página de detalles
+  window.location.href = `producto.html?id=${id}`;
+}
+
+function editarProducto(id) {
+  // Redirigir a página de edición
+  window.location.href = `modificar.html?id=${id}`;
+}
+  </script>
+</body>
+</html>

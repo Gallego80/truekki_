@@ -27,13 +27,19 @@
                         <input type="email" id="email" name="email" placeholder="Ingresa tu correo electrónico" required>
                         <div class="error-message" id="emailError"></div>
                     </div>
-                    
+                                        
                     <div class="input-group">
-                        <i class="fas fa-lock input-icon"></i>
-                        <input type="password" id="password" name="password" placeholder="Ingresa tu contraseña" required>
-                        <div class="error-message" id="passwordError"></div>
-                    </div>
+                    <i class="fas fa-lock input-icon"></i>
+                    <input type="password" id="password" name="password" placeholder="Ingresa tu contraseña" required>
                     
+                    <!-- 👁 Ojo añadido -->
+                    <span class="toggle-password" onclick="togglePassword()">
+                        <img src="../img/ojo-cerrado.png" class="ojo" id="ojo">
+                    </span>
+                    
+                    <div class="error-message" id="passwordError"></div>
+                    </div>
+
                     <button type="submit" class="login-btn">ACCEDER</button>
                 </form>
                 
@@ -151,294 +157,147 @@
         </div>
     </div>
 
-    <script>
-        // Variables globales
-        let currentStep = 1;
-        let recoveryToken = '';
-        let timerInterval;
-        let timeLeft = 15 * 60; // 15 minutos en segundos
-        
-        // Sistema de pestañas
-        document.querySelectorAll('.tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                // Desactivar todas las pestañas
-                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-                
-                // Activar la pestaña seleccionada
-                tab.classList.add('active');
-                document.getElementById(`${tab.dataset.tab}-tab`).classList.add('active');
-            });
+  <script>
+
+    
+    // Variables globales
+    let currentStep = 1;
+    let recoveryToken = '';
+    let timerInterval;
+    let timeLeft = 15 * 60; // 15 minutos en segundos
+    
+    // Sistema de pestañas
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            // Desactivar todas las pestañas
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            
+            // Activar la pestaña seleccionada
+            tab.classList.add('active');
+            document.getElementById(`${tab.dataset.tab}-tab`).classList.add('active');
         });
+    });
+    
+    // Validación del formulario de login estándar
+    document.getElementById('standardLoginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
         
-        // Validación del formulario de login estándar
-        document.getElementById('standardLoginForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            let isValid = true;
-            
-            // Ocultar mensajes de error previos
-            document.getElementById('emailError').style.display = 'none';
-            document.getElementById('passwordError').style.display = 'none';
-            
-            // Validar email
-            if (!email) {
-                document.getElementById('emailError').textContent = 'El email es obligatorio';
-                document.getElementById('emailError').style.display = 'block';
-                isValid = false;
-            } else if (!isValidEmail(email)) {
-                document.getElementById('emailError').textContent = 'Ingresa un email válido';
-                document.getElementById('emailError').style.display = 'block';
-                isValid = false;
-            }
-            
-            // Validar contraseña
-            if (!password) {
-                document.getElementById('passwordError').textContent = 'La contraseña es obligatoria';
-                document.getElementById('passwordError').style.display = 'block';
-                isValid = false;
-            } else if (password.length < 8) {
-                document.getElementById('passwordError').textContent = 'La contraseña debe tener al menos 8 caracteres';
-                document.getElementById('passwordError').style.display = 'block';
-                isValid = false;
-            }
-            
-            // Si es válido, proceder con el login
-            if (isValid) {
-                // Simulación de login
-                simulateLogin('standard', { email, password });
-            }
-            setTimeout(() => {
-                // Redirección a la página inicial después de login exitoso
-                window.location.href = 'barra.html';
-            }, 1500);
-        });
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        let isValid = true;
         
-        // Simular login
-        function simulateLogin(method, credentials) {
-            // Aquí se conectaría con el backend en una implementación real
-            console.log(`Iniciando sesión con método: ${method}`, credentials);
-            
-            // Simular retraso de red
-            setTimeout(() => {
-                // Redirección a la página inicial después de login exitoso
-                window.location.href = 'barra.html';
-            }, 1000);
-        }
+        // Ocultar mensajes de error previos
+        document.getElementById('emailError').style.display = 'none';
+        document.getElementById('passwordError').style.display = 'none';
         
-        // Simular login social
-        function socialLogin(provider) {
-            // Aquí se redirigiría al endpoint OAuth del proveedor en una implementación real
-            console.log(`Iniciando login social con: ${provider}`);
-            
-            // Simular ventana de autenticación
-            alert(`Redirigiendo a ${provider} para autenticación...`);
-            
-            // Simular retraso de net y autenticación exitosa
-            setTimeout(() => {
-                // Redirección a la página inicial después de login exitoso
-                window.location.href = 'inicio.html';
-            }, 1500);
-        }
-        
-        // Validar formato de email
-        function isValidEmail(email) {
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            return emailRegex.test(email);
-        }
-        
-        // Mostrar modal de recuperación de contraseña
-        document.getElementById('forgotPasswordLink').addEventListener('click', function(e) {
-            e.preventDefault();
-            document.getElementById('passwordRecoveryModal').style.display = 'flex';
-            resetRecoveryProcess();
-        });
-        
-        // Cerrar modal
-        function closeModal() {
-            document.getElementById('passwordRecoveryModal').style.display = 'none';
-            resetRecoveryProcess();
-        }
-        
-        // Cerrar modal al hacer clic fuera del contenido
-        window.addEventListener('click', function(e) {
-            if (e.target === document.getElementById('passwordRecoveryModal')) {
-                closeModal();
-            }
-        });
-        
-        // Reiniciar proceso de recuperación
-        function resetRecoveryProcess() {
-            currentStep = 1;
-            updateProgress();
-            goToStep(1);
-            clearInterval(timerInterval);
-            document.getElementById('emailOrPhone').value = '';
-            document.getElementById('verificationCode').value = '';
-            document.getElementById('newPassword').value = '';
-            document.getElementById('confirmPassword').value = '';
-            document.getElementById('timer').classList.remove('expiring');
-        }
-        
-        // Actualizar barra de progreso
-        function updateProgress() {
-            const progress = document.getElementById('progress');
-            const percentage = (currentStep / 4) * 100;
-            progress.style.width = `${percentage}%`;
-        }
-        
-        // Cambiar entre pasos
-        function goToStep(step) {
-            document.querySelectorAll('.step').forEach(s => {
-                s.classList.remove('active');
-            });
-            
-            document.getElementById(`step${step}`).classList.add('active');
-            currentStep = step;
-            updateProgress();
-        }
-        
-        // Volver a un paso anterior
-        function backToStep(step) {
-            goToStep(step);
-        }
-        
-        // Solicitar recuperación
-        function requestRecovery() {
-            const emailOrPhone = document.getElementById('emailOrPhone').value;
-            
-            if (!emailOrPhone) {
-                alert('Por favor, ingresa tu correo electrónico o número de teléfono.');
-                return;
-            }
-            
-            // Simular envío de código (en un caso real, se conectaría con el backend)
-            recoveryToken = generateToken();
-            
-            // Iniciar temporizador
-            startTimer();
-            
-            // Avanzar al siguiente paso
-            goToStep(2);
-        }
-        
-        // Generar token aleatorio (simulación)
-        function generateToken() {
-            return Math.random().toString(36).substring(2, 8).toUpperCase();
-        }
-        
-        // Iniciar temporizador
-        function startTimer() {
-            timeLeft = 15 * 60; // 15 minutos
-            
-            clearInterval(timerInterval);
-            timerInterval = setInterval(updateTimer, 1000);
-            updateTimer();
-        }
-        
-        // Actualizar temporizador
-        function updateTimer() {
-            const minutes = Math.floor(timeLeft / 60);
-            const seconds = timeLeft % 60;
-            
-            document.getElementById('time').textContent = 
-                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            
-            // Cambiar color cuando quedan menos de 2 minutos
-            if (timeLeft < 120) {
-                document.getElementById('timer').classList.add('expiring');
-            } else {
-                document.getElementById('timer').classList.remove('expiring');
-            }
-            
-            if (timeLeft <= 0) {
-                clearInterval(timerInterval);
-                alert('El código de verificación ha expirado. Por favor, solicita uno nuevo.');
-                backToStep(1);
-            }
-            
-            timeLeft--;
-        }
-        
-        // Verificar código
-        function verifyCode() {
-            const code = document.getElementById('verificationCode').value;
-            
-            if (!code) {
-                alert('Por favor, ingresa el código de verificación.');
-                return;
-            }
-            
-            // En un caso real, se verificaría con el backend
-            // Aquí simulamos una verificación exitosa
-            if (code.length === 6) {
-                clearInterval(timerInterval);
-                goToStep(3);
-            } else {
-                alert('El código de verificación es incorrecto. Por favor, inténtalo de nuevo.');
-            }
-        }
-        
-        // Establecer nueva contraseña
-        function setNewPassword() {
-            const newPassword = document.getElementById('newPassword').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-            
-            if (!newPassword || !confirmPassword) {
-                alert('Por favor, completa ambos campos de contraseña.');
-                return;
-            }
-            
-            if (newPassword !== confirmPassword) {
-                alert('Las contraseñas no coinciden. Por favor, verifica e inténtalo de nuevo.');
-                return;
-            }
-            
-            // Validar fortaleza de la contraseña
-            if (!validatePassword(newPassword)) {
-                alert('La contraseña no cumple con los requisitos de seguridad. Por favor, verifica las reglas e inténtalo de nuevo.');
-                return;
-            }
-            
-            // En un caso real, se enviaría al backend para su validación y almacenamiento
-            // Simulamos el proceso exitoso
-            
-            // Invalidar tokens anteriores (simulado)
-            invalidatePreviousTokens();
-            
-            // Avanzar a confirmación
-            goToStep(4);
+        // Validar email
+        if (!email) {
+            document.getElementById('emailError').textContent = 'El email es obligatorio';
+            document.getElementById('emailError').style.display = 'block';
+            isValid = false;
+        } else if (!isValidEmail(email)) {
+            document.getElementById('emailError').textContent = 'Ingresa un email válido';
+            document.getElementById('emailError').style.display = 'block';
+            isValid = false;
         }
         
         // Validar contraseña
-        function validatePassword(password) {
-            // Mínimo 8 caracteres
-            if (password.length < 8) return false;
-            
-            // Al menos 1 mayúscula
-            if (!/[A-Z]/.test(password)) return false;
-            
-            // Al menos 1 número
-            if (!/\d/.test(password)) return false;
-            
-            // Al menos 1 carácter especial
-            if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) return false;
-            
-            // En un caso real, se verificaría contra el historial de contraseñas
-            // Simulamos que no es igual a las 2 últimas contraseñas
-            if (password === 'OldPassword123!' || password === 'PreviousPassword456@') {
-                return false;
-            }
-            
-            return true;
-        }
+        if (!password) {
+            document.getElementById('passwordError').textContent = 'La contraseña es obligatoria';
+            document.getElementById('passwordError').style.display = 'block';
+            isValid = false;
+        } 
         
-        // Invalidar tokens anteriores (simulación)
-        function invalidatePreviousTokens() {
-            console.log('Todos los tokens de sesión anteriores han sido invalidados.');
+        // Si es válido, proceder con el login real
+        if (isValid) {
+            await realizarLogin(email, password);
         }
-    </script>
+    });
+    
+    // Función para realizar login real
+    async function realizarLogin(email, password) {
+        try {
+            const response = await fetch('http://localhost:5000/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email, password })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                // Guardar información del usuario en localStorage
+                localStorage.setItem('usuario', JSON.stringify(result.usuario));
+                localStorage.setItem('isLoggedIn', 'true');
+                
+                // Mostrar mensaje de éxito
+                alert('¡Login exitoso! Bienvenido ' + result.usuario.nombre);
+                
+                // Redireccionar a la página principal
+                window.location.href = 'barra.html';
+            } else {
+                // Mostrar error
+                alert('Error: ' + result.message);
+            }
+        } catch (error) {
+            console.error('Error en el login:', error);
+            alert('Error de conexión. Por favor, intenta nuevamente.');
+        }
+    }
+    
+    // Simular login social (para mantener la funcionalidad existente)
+    function socialLogin(provider) {
+        alert(`Login con ${provider} sería implementado con OAuth en producción`);
+    }
+    
+    // Validar formato de email
+    function isValidEmail(email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    }
+    
+    // Mostrar modal de recuperación de contraseña
+    document.getElementById('forgotPasswordLink').addEventListener('click', function(e) {
+        e.preventDefault();
+        alert('Funcionalidad de recuperación de contraseña estaría implementada en producción');
+    });
+    
+    // Cerrar modal
+    function closeModal() {
+        document.getElementById('passwordRecoveryModal').style.display = 'none';
+        resetRecoveryProcess();
+    }
+    
+    // Cerrar modal al hacer clic fuera del contenido
+    window.addEventListener('click', function(e) {
+        if (e.target === document.getElementById('passwordRecoveryModal')) {
+            closeModal();
+        }
+    });
+    
+    // Reiniciar proceso de recuperación
+    function resetRecoveryProcess() {
+        currentStep = 1;
+        updateProgress();
+        goToStep(1);
+        clearInterval(timerInterval);
+    }
+
+  function togglePassword() {
+    const input = document.getElementById("password");
+    const ojo = document.getElementById("ojo");
+
+    if (input.type === "password") {
+      input.type = "text";
+      ojo.src = "../img/ojo-abierto.png";
+    } else {
+      input.type = "password";
+      ojo.src = "../img/ojo-cerrado.png";
+    }
+  }
+</script>
 </body>
 </html>

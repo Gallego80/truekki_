@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>TRUEKKI - Modificar Producto</title>
+  <link rel="stylesheet" href="../css/modificar.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+<body>
+
+  <!-- ✅ Nuevo Navbar + Menú lateral -->
+  <header>
+    <div class="header-content"> 
+      <h1>TRUEKKI</h1>
+      <div class="search-bar">
+        <input type="text" placeholder="Buscar productos..." id="search-input">
+        <button onclick="searchProducts()"><i class="fas fa-search"></i></button>
+      </div>
+      <div class="icons">
+        <span class="icon" onclick="showSection('favorites')"><i class="fas fa-heart"></i></span>
+        <span class="icon" onclick="showSection('messages')"><i class="fas fa-comment"></i></span>
+        <span class="icon menu-btn" onclick="openMenu()"><i class="fas fa-bars"></i></span>
+      </div>
+    </div>
+  </header>
+
+  <div class="sidebar" id="sidebar">
+    <span class="close-btn" onclick="closeMenu()">✖</span>
+    <div class="user-info">
+      <div class="user-avatar" id="sidebar-avatar">US</div>
+      <div class="user-name" id="sidebar-name">Usuario</div>
+    </div>
+    <a href="publicar_producto.html"><i class="fas fa-plus-circle"></i> Publicar</a>
+    <a href="#"><i class="fas fa-bell"></i> Notificaciones</a>
+    <a href="./chat.html"><i class="fas fa-comments"></i> Chats</a>
+    <a href="historial.html"><i class="fas fa-history"></i> Historial</a>
+    <a href="perfil.html"><i class="fas fa-user"></i> Perfil</a>
+    <a href="#"><i class="fas fa-question-circle"></i> Ayuda</a>
+    <a href="subastas.html"><i class="fas fa-gavel"></i> Subastas</a>
+    <a href="./bloqueo.html">Bloquear usuarios</a>
+    <a href="./reportar.html">Reportar usuarios</a>
+    <a href="./catalogo.html">Mis Productos</a>
+    <button onclick="logout()" class="cerrar-sesion"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</button>
+  </div>
+
+  <div class="overlay" id="overlay" onclick="closeMenu()"></div>
+
+  <!-- ✅ Contenido principal -->
+  <div class="container">
+    <div class="form-card">
+      <h2>Modificar Producto</h2>
+      <form id="edit-product-form">
+        <input type="hidden" id="id_producto" name="id_producto" />
+
+        <label for="titulo">Título</label>
+        <input type="text" id="titulo" name="titulo" placeholder="Título del producto" />
+
+        <label for="descripcion">Descripción</label>
+        <textarea id="descripcion" name="descripcion" rows="4" placeholder="Descripción detallada..."></textarea>
+
+        <label for="precio">Precio</label>
+        <input type="number" id="precio" name="precio" placeholder="Ej: 200000" />
+
+        <label for="categoria">Categoría</label>
+        <select id="categoria" name="categoria">
+          <option value="tecnologia">Tecnología</option>
+          <option value="hogar">Hogar</option>
+          <option value="ropa">Ropa</option>
+        </select>
+
+        <label for="estado">Estado</label>
+        <select id="estado" name="estado">
+          <option value="nuevo">Nuevo</option>
+          <option value="usado">Usado</option>
+        </select>
+
+        <label for="ciudad">Ciudad</label>
+        <input type="text" id="ciudad" name="ciudad" placeholder="Ej: Bogotá" />
+
+        <label for="barrio">Barrio</label>
+        <input type="text" id="barrio" name="barrio" placeholder="Ej: Chapinero" />
+
+        <label for="contacto">Contacto</label>
+        <select id="contacto" name="contacto">
+          <option value="whatsapp">WhatsApp</option>
+          <option value="mensaje">Mensaje</option>
+        </select>
+
+        <label for="foto">Foto del producto</label>
+        <input type="file" id="foto" name="foto" accept="image/*" />
+
+        <div class="btns">
+          <button type="submit" class="btn-guardar">
+            <i class="fas fa-save"></i> Guardar cambios
+          </button>
+          <button type="button" class="btn-completado" onclick="marcarCompletado()">
+            <i class="fas fa-check"></i> Marcar como completado
+          </button>
+          <button type="button" class="btn-eliminar" onclick="eliminarProducto()">
+            <i class="fas fa-trash"></i> Eliminar producto
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ✅ Scripts -->
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const idProducto = params.get("id");
+    document.getElementById("id_producto").value = idProducto;
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      if (!idProducto) return alert("Producto no encontrado");
+
+      try {
+        const res = await fetch(`http://localhost:5000/producto/${idProducto}`);
+        const data = await res.json();
+
+        if (!data.success) return alert("No se pudo cargar el producto");
+
+        const producto = data.producto;
+        document.getElementById("titulo").value = producto.titulo;
+        document.getElementById("descripcion").value = producto.descripcion;
+        document.getElementById("precio").value = producto.precio;
+        document.getElementById("categoria").value = producto.categoria;
+        document.getElementById("estado").value = producto.estado;
+        document.getElementById("ciudad").value = producto.ciudad || "";
+        document.getElementById("barrio").value = producto.barrio || "";
+        document.getElementById("contacto").value = producto.contacto || "whatsapp";
+      } catch (error) {
+        console.error("Error cargando producto:", error);
+      }
+    });
+
+    document.getElementById("edit-product-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const formData = new FormData();
+      formData.append("titulo", document.getElementById("titulo").value);
+      formData.append("descripcion", document.getElementById("descripcion").value);
+      formData.append("precio", document.getElementById("precio").value);
+      formData.append("categoria", document.getElementById("categoria").value);
+      formData.append("estado", document.getElementById("estado").value);
+      formData.append("ciudad", document.getElementById("ciudad").value);
+      formData.append("barrio", document.getElementById("barrio").value);
+      formData.append("contacto", document.getElementById("contacto").value);
+
+      const fileInput = document.getElementById("foto");
+      if (fileInput.files.length > 0) {
+        formData.append("foto", fileInput.files[0]);
+      }
+
+      try {
+        const res = await fetch(`http://localhost:5000/producto/${idProducto}`, {
+          method: "PUT",
+          body: formData,
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert("✅ Producto actualizado correctamente");
+          window.location.href = "catalogo.html";
+        } else {
+          alert("❌ " + data.message);
+        }
+      } catch (err) {
+        console.error("Error en fetch:", err);
+        alert("Error en la conexión con el servidor");
+      }
+    });
+
+    async function marcarCompletado() {
+      try {
+        const res = await fetch(`http://localhost:5000/marcar-vendido/${idProducto}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ disponible: false }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert("✅ Producto marcado como completado");
+          window.location.href = "catalogo.html";
+        } else {
+          alert("❌ Error: " + data.message);
+        }
+      } catch (err) {
+        alert("❌ Error de conexión");
+        console.error(err);
+      }
+    }
+
+    async function eliminarProducto() {
+      if (!confirm("¿Estás seguro de eliminar este producto?")) return;
+      try {
+        const res = await fetch(`http://localhost:5000/producto/${idProducto}`, {
+          method: "DELETE",
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert("✅ Producto eliminado correctamente");
+          window.location.href = "catalogo.html";
+        } else {
+          alert("❌ Error: " + data.message);
+        }
+      } catch (err) {
+        alert("❌ Error en la conexión");
+        console.error(err);
+      }
+    }
+
+    function openMenu() {
+      document.getElementById("sidebar").style.width = "280px";
+      document.getElementById("overlay").style.display = "block";
+    }
+
+    function closeMenu() {
+      document.getElementById("sidebar").style.width = "0";
+      document.getElementById("overlay").style.display = "none";
+    }
+
+    function logout() {
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.href = "../login.html";
+    }
+
+    function searchProducts() {
+      const query = document.getElementById("search-input").value.trim();
+      if (query) {
+        window.location.href = `buscar.html?q=${encodeURIComponent(query)}`;
+      }
+    }
+
+    function showSection(section) {
+      alert(`Funcionalidad de ${section} no implementada aún.`);
+    }
+  </script>
+</body>
+</html>
