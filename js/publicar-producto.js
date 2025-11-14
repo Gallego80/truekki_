@@ -114,14 +114,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // Obtener método de contacto seleccionado
             const contacto = document.querySelector('input[name="contacto"]:checked').value;
             
-        // ID de usuario desde el localStorage (sesión real)
-        const usuario = JSON.parse(localStorage.getItem("usuario"));
-        if (!usuario || !usuario.id) {
-            alert("Debes iniciar sesión para publicar productos");
-            return;
-        }
-        const idUsuario = usuario.id;
-
+            // ID de usuario temporal (deberías obtenerlo de la sesión)
+            const idUsuario = 1;
             
             // Crear objeto producto
             const producto = {
@@ -188,30 +182,3 @@ document.addEventListener('DOMContentLoaded', function() {
     // Validación inicial
     actualizarValidacion();
 });
-
-// ✅ Función para marcar producto como vendido
-async function marcarComoVendido(idProducto) {
-    if (confirm("¿Seguro que quieres marcar este producto como vendido?")) {
-        try {
-            const response = await fetch(`http://localhost:5000/marcar-vendido/${idProducto}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ disponible: false })
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                alert("Producto marcado como vendido ✅");
-                location.reload(); // refresca para mostrar cambios
-            } else {
-                alert("Error: " + result.message);
-            }
-        } catch (error) {
-            console.error("Error:", error);
-            alert("No se pudo actualizar el estado del producto");
-        }
-    }
-}

@@ -4,171 +4,205 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TRUEKKI - Mis Productos</title>
-  <link rel="stylesheet" href="../css/catalogo.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/catalogo.css">
 </head>
 <body>
+    <!-- Botón de menú -->
+    <div class="menu-btn" onclick="openMenu()">☰</div>
 
-  <!-- Barra superior -->
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+      <span class="close-btn" onclick="closeMenu()">✖</span>
+      <a href="./barra.html">Explorar</a>
+      <a href="publicar_producto.html">Publicar</a>
+      <a href="#">Notificaciones</a>
+      <a href="./chat.html">Chats</a>
+      <a href="#">Historial</a>
+      <a href="perfil_vendedor.html">Perfil</a>
+      <a href="./bloqueo.html">Bloquear Usuario</a>
+      <a href="./reportar.html">Reportar Usuario</a>
+      <a href="./catalogo.html">Mis productos</a>
+      <a href="#">Ayuda</a>
+    </div>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay" onclick="closeMenu()"></div>
+
+  <!-- Header -->
   <header>
-    <div class="header-content">
-      <h1>TRUEKKI</h1>
-      <div class="search-bar">
-        <input type="text" placeholder="Buscar en mis productos..." id="search-input">
-        <button id="btn-search"><i class="fas fa-search"></i></button>
-      </div>
-      <div class="icons">
-        <span class="icon" id="btn-favorites"><i class="fas fa-heart"></i></span>
-        <span class="icon" id="btn-messages"><i class="fas fa-comment"></i></span>
-        <span class="icon menu-btn" id="btn-menu"><i class="fas fa-bars"></i></span>
-      </div>
+    <h1>TRUEKKI</h1>
+    <div class="search-bar">
+      <input type="text" placeholder="Buscar...">
+      <button>+</button>
+    </div>
+    <div class="filter-toggle" onclick="toggleFilters()">⋮</div>
+
+    <!-- Filtros -->
+    <div id="filters" class="hidden">
+      <select id="categoryFilter">
+        <option value="all">Todas las categorías</option>
+        <option value="ropa">Ropa</option>
+        <option value="tecnologia">Tecnología</option>
+        <option value="libros">Libros</option>
+      </select>
+
+      <select id="priceFilter">
+        <option value="all">Todos los precios</option>
+        <option value="low">Menor a 20.000 COP</option>
+        <option value="medium">100.000 - 500.000 COP</option>
+        <option value="high">Mayor a 500.000 COP</option>
+      </select>
+
+      <select id="conditionFilter">
+        <option value="all">Todos los estados</option>
+        <option value="nuevo">Nuevo</option>
+        <option value="usado">Usado</option>
+      </select>
     </div>
   </header>
 
-  <!-- Menú lateral -->
-  <div class="sidebar" id="sidebar">
-    <span class="close-btn" id="btn-close">✖</span>
-    <div class="user-info">
-      <div class="user-avatar" id="sidebar-avatar">US</div>
-      <div class="user-name" id="sidebar-name">Usuario</div>
-    </div>
-    <a href="./barra.html">Inicio</a>
-    <a href="publicar_producto.html"><i class="fas fa-plus-circle"></i> Publicar</a>
-    <a href="./chat.html"><i class="fas fa-comments"></i> Chats</a>
-    <a href="perfil.html"><i class="fas fa-user"></i> Perfil</a>
-    <button id="btn-logout" class="cerrar-sesion"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</button>
-  </div>
-
-  <!-- Overlay -->
-  <div class="overlay" id="overlay"></div>
-
-  <!-- Título -->
-  <main class="container">
-    <h2 style="margin: 30px 0; text-align:center;">Mis Productos Publicados</h2>
-
-    <!-- Grid de productos -->
-    <section class="products-grid" id="my-products-grid">
-      <div class="loading-state">
-        <i class="fas fa-spinner fa-spin"></i>
-        <p>Cargando tus productos...</p>
+  <!-- Catálogo de productos -->
+  <section class="products">
+    <!-- Producto 1 -->
+    <div class="card producto" data-category="ropa" data-price="150" data-condition="nuevo">
+      <img src="https://i.pinimg.com/736x/8e/8d/19/8e8d19acba343386d4cc1f917bf80995.jpg" alt="Jeans">
+      <div class="actions">
+        <span class="heart">❤</span>
+        <span class="cart">💬</span>
       </div>
-    </section>
-  </main>
-
-  <!-- Footer -->
-  <footer>
-    <div class="container">
-      <div class="footer-content">
-        <div class="footer-section">
-          <h3>TRUEKKI</h3>
-          <p>Plataforma de intercambios y ventas de productos únicos.</p>
-        </div>
-        <div class="footer-section">
-          <h3>Enlaces rápidos</h3>
-          <ul>
-            <li><a href="catalogo.html">Catálogo</a></li>
-            <li><a href="publicar_producto.html">Publicar</a></li>
-            <li><a href="perfil.html">Perfil</a></li>
-          </ul>
-        </div>
-      </div>
-      <div class="copyright">
-        &copy; 2023 TRUEKKI - Todos los derechos reservados
+      <p>Jeans Baggy</p>
+      <div class="card-buttons">
+        <a href="modificar.html" class="btn-modificar">✏️ Modificar</a>
+        <button class="btn-eliminar">🗑️ Eliminar</button>
       </div>
     </div>
-  </footer>
+
+    <!-- Producto 2 -->
+    <div class="card producto" data-category="ropa" data-price="120" data-condition="usado">
+      <img src="https://static.wixstatic.com/media/e3c921_72852877781f47609ed2099aeb792674~mv2.jpg/v1/fit/w_500,h_500,q_90/file.jpg" alt="Corset">
+      <div class="actions">
+        <span class="heart">❤</span>
+        <span class="cart">💬</span>
+      </div>
+      <p>Corset Café</p>
+      <div class="card-buttons">
+        <a href="modificar.html" class="btn-modificar">✏️ Modificar</a>
+        <button class="btn-eliminar">🗑️ Eliminar</button>
+      </div>
+    </div>
+
+    <!-- Producto 3 -->
+    <div class="card producto" data-category="tecnologia" data-price="900" data-condition="nuevo">
+      <img src="https://th.bing.com/th/id/OIP.vewfenftbHKrLMt4yaq72wHaHa" alt="Portatil Gamer">
+      <div class="actions">
+        <span class="heart">❤</span>
+        <span class="cart">💬</span>
+      </div>
+      <p>Portátil Gamer</p>
+      <div class="card-buttons">
+        <a href="modificar.html" class="btn-modificar">✏️ Modificar</a>
+        <button class="btn-eliminar">🗑️ Eliminar</button>
+      </div>
+    </div>
+
+    <!-- Producto 4 -->
+    <div class="card producto" data-category="libros" data-price="50" data-condition="usado">
+      <img src="https://tse3.mm.bing.net/th/id/OIP.X81k0hwApMg-aeIyPZJ3FwHaLH" alt="Libro 100 Años">
+      <div class="actions">
+        <span class="heart">❤</span>
+        <span class="cart">💬</span>
+      </div>
+      <p>Libro Original 100 Años de Soledad</p>
+      <div class="card-buttons">
+        <a href="modificar.html" class="btn-modificar">✏️ Modificar</a>
+        <button class="btn-eliminar">🗑️ Eliminar</button>
+      </div>
+    </div>
+  </section>
 
   <!-- Scripts -->
-  <script src="../js/auth.js"></script>
   <script>
-document.addEventListener("DOMContentLoaded", async () => {
-  const sidebar = document.getElementById("sidebar");
-  const overlay = document.getElementById("overlay");
+    const sidebar = document.getElementById("sidebar");
+    const overlay = document.getElementById("overlay");
 
-  // === Funciones ===
-  function openMenu() {
-    sidebar.style.width = "280px";
-    overlay.style.display = "block";
-  }
-
-  function closeMenu() {
-    sidebar.style.width = "0";
-    overlay.style.display = "none";
-  }
-
-  function searchMyProducts() {
-    const query = document.getElementById("search-input").value.toLowerCase();
-    const cards = document.querySelectorAll(".product-card");
-    cards.forEach(card => {
-      const title = card.querySelector("h3").textContent.toLowerCase();
-      card.style.display = title.includes(query) ? "block" : "none";
-    });
-  }
-
-  function showSection(section) {
-    alert("Sección seleccionada: " + section);
-  }
-
-  function logout() {
-    alert("Sesión cerrada");
-    window.location.href = "login.html";
-  }
-
-  // === Eventos ===
-  document.getElementById("btn-menu").addEventListener("click", openMenu);
-  document.getElementById("btn-close").addEventListener("click", closeMenu);
-  overlay.addEventListener("click", closeMenu);
-  document.getElementById("btn-search").addEventListener("click", searchMyProducts);
-  document.getElementById("btn-favorites").addEventListener("click", () => showSection("favorites"));
-  document.getElementById("btn-messages").addEventListener("click", () => showSection("messages"));
-  document.getElementById("btn-logout").addEventListener("click", logout);
-
-  // === Cargar productos ===
-  try {
-    const response = await fetch("http://localhost:5000/productos");
-    const data = await response.json();
-
-    const container = document.getElementById("my-products-grid");
-    container.innerHTML = "";
-
-    if (!data.success || data.productos.length === 0) {
-      container.innerHTML = "<p>No hay productos publicados todavía.</p>";
-      return;
+    function openMenu() {
+      sidebar.style.width = "250px";
+      overlay.style.display = "block";
     }
 
-    data.productos.forEach(producto => {
-      const card = document.createElement("div");
-      card.classList.add("product-card");
+    function closeMenu() {
+      sidebar.style.width = "0";
+      overlay.style.display = "none";
+    }
 
-      card.innerHTML = `
-        <img src="http://localhost:5000/imagen-producto/${producto.id_producto}" 
-             alt="${producto.titulo}" />
-        <h3>${producto.titulo}</h3>
-        <p class="precio">$${producto.precio}</p>
-        <div class="card-buttons">
-          <button class="btn-ver" onclick="verDetalles(${producto.id_producto})">Ver detalles</button>
-          <button class="btn-editar" onclick="editarProducto(${producto.id_producto})">Modificar</button>
-        </div>
-      `;
+    function toggleFilters() {
+      document.getElementById("filters").classList.toggle("hidden");
+    }
 
-      container.appendChild(card);
+    // Botones eliminar
+    document.querySelectorAll(".btn-eliminar").forEach(btn => {
+      btn.addEventListener("click", () => {
+        if (confirm("¿Seguro que quieres ELIMINAR este producto?")) {
+          alert("Producto eliminado");
+        }
+      });
     });
-  } catch (error) {
-    console.error("Error cargando productos:", error);
-    document.getElementById("my-products-grid").innerHTML = "<p>Error al cargar productos.</p>";
+
+      // Filtros
+  const filters = {
+    category: "all",
+    price: "all",
+    condition: "all"
+  };
+
+  document.getElementById("categoryFilter").addEventListener("change", (e) => {
+    filters.category = e.target.value;
+    applyFilters();
+  });
+
+  document.getElementById("priceFilter").addEventListener("change", (e) => {
+    filters.price = e.target.value;
+    applyFilters();
+  });
+
+  document.getElementById("conditionFilter").addEventListener("change", (e) => {
+    filters.condition = e.target.value;
+    applyFilters();
+  });
+
+  function applyFilters() {
+    const products = document.querySelectorAll(".producto");
+
+    products.forEach(product => {
+      const category = product.getAttribute("data-category");
+      const price = parseFloat(product.getAttribute("data-price"));
+      const condition = product.getAttribute("data-condition");
+
+      let visible = true;
+
+      if (filters.category !== "all" && category !== filters.category) {
+        visible = false;
+      }
+
+      if (filters.price === "low" && price >= 100) visible = false;
+      if (filters.price === "medium" && (price < 100 || price > 500)) visible = false;
+      if (filters.price === "high" && price <= 500) visible = false;
+
+      if (filters.condition !== "all" && condition !== filters.condition) {
+        visible = false;
+      }
+
+      product.style.display = visible ? "block" : "none";
+    });
   }
-});
 
-// === Funciones para botones ===
-function verDetalles(id) {
-  // Redirigir a página de detalles
-  window.location.href = `producto.html?id=${id}`;
-}
 
-function editarProducto(id) {
-  // Redirigir a página de edición
-  window.location.href = `modificar.html?id=${id}`;
-}
+
+  function toggleFilters() {
+    const filters = document.getElementById("filters");
+    filters.classList.toggle("hidden");
+  }
+
   </script>
 </body>
 </html>

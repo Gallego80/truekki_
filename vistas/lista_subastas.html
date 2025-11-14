@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Subastas - TRUEKKI</title>
+    <link rel="stylesheet" href="../css/subastas.css" />
+</head>
+<body>
+<header class="main-header">
+    <div class="logo">TRUEKKI</div>
+    <div class="search-bar">
+        <input type="text" placeholder="Buscar productos..." />
+        <button class="btn-search">🔍</button>
+    </div>
+</header>
+
+<div class="container">
+    <h2>Subastas Activas</h2>
+    <div id="listaSubastas">
+        <!-- Aquí se cargarán las subastas -->
+    </div>
+</div>
+
+<script>
+async function cargarSubastas() {
+    const contenedor = document.getElementById("listaSubastas");
+    contenedor.innerHTML = "Cargando...";
+
+    try {
+        const res = await fetch("http://localhost:5000/lista-subastas");
+        const data = await res.json();
+
+        if (!data.success || data.subastas.length === 0) {
+            contenedor.innerHTML = "<p>No hay subastas activas</p>";
+            return;
+        }
+
+        contenedor.innerHTML = "";
+        data.subastas.forEach(s => {
+            const div = document.createElement("div");
+            div.className = "subasta";
+            div.innerHTML = `
+                <img src="http://localhost:5000/uploads/${s.imagen}" alt="${s.producto}" class="subasta-img" />
+                <div class="subasta-info">
+                    <h3>${s.producto}</h3>
+                    <p>Precio inicial: $${Number(s.monto).toLocaleString()}</p>
+                    <p>Publicado por: ${s.usuario}</p>
+                    <p>Fecha: ${new Date(s.fecha).toLocaleString()}</p>
+                </div>
+                <div class="subasta-icons">
+                    <button title="Ofertar">💰</button>
+                    <button title="Ver detalles">🔍</button>
+                </div>
+            `;
+            contenedor.appendChild(div);
+        });
+
+    } catch (err) {
+        console.error(err);
+        contenedor.innerHTML = "<p>Error al cargar subastas</p>";
+    }
+}
+
+document.addEventListener("DOMContentLoaded", cargarSubastas);
+</script>
+</body>
+</html>

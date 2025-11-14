@@ -1,170 +1,154 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TRUEKKI</title>
-  <link rel="stylesheet" href="../estilos/barra.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Crear Subasta - TRUEKKI</title>
+    <link rel="stylesheet" href="../css/subastas.css" />
 </head>
 <body>
+    <!-- HEADER TRUEKKI -->
+    <header class="main-header">
+        <div class="logo">TRUEKKI</div>
+        <div class="search-bar">
+            <input type="text" placeholder="Buscar productos..." />
+            <button class="btn-search">🔍</button>
+        </div>
+        <div class="icons">
+            <span class="icon menu-btn" onclick="openMenu()">☰</span>
+        </div>
+    </header>
 
-    <div class="menu-btn" onclick="openMenu()">☰</div>
+    <div class="container">
+        <h2>Crear nueva subasta</h2>
 
-  <div class="sidebar" id="sidebar">
-    <span class="close-btn" onclick="closeMenu()">✖</span>
-    <a href="publicar.html">Publicar</a>
-    <a href="#">Notificaciones</a>
-    <a href="#">chats</a>
-    <a href="historial.html"> Historial</a>
-    <a href="perfil_vendedor.html">Perfil</a>
-    <a href="#">Ayuda</a>
-    <a href="#">subasta</a>
-  </div>
+        <form id="formSubasta">
+            <div class="form-group">
+                <label for="producto">Producto</label>
+                <select id="producto" name="producto" required>
+                    <option value="">Selecciona un producto...</option>
+                </select>
+            </div>
 
-  <!-- Overlay -->
-  <div class="overlay" id="overlay" onclick="closeMenu()"></div>
-  <!-- Barra superior -->
-  <header>
-    <h1>SUBASTAS</h1>
-  </header>
+            <div class="form-group">
+                <label>Precio inicial</label>
+                <input type="number" id="precio" placeholder="Ej: 50000" required />
+            </div>
 
-  <!-- Productos -->
-  <section class="products">
-    <!-- Producto 1 -->
-    <div class="card">
-      <a class="card-link" href="#"></a>
-      <img src="https://i.pinimg.com/736x/8e/8d/19/8e8d19acba343386d4cc1f917bf80995.jpg" alt="Jeans">
-      <div class="actions">
-        <span class="heart">❤</span>
-        <span class="cart">💬</span>
-      </div>
-      <p>Jeanss Baggy</p>
+            <button class="btn" type="submit">Publicar subasta</button>
+        </form>
     </div>
 
-    <!-- Producto 2 -->
-    <div class="card">
-      <a class="card-link" href="detalle_producto.html?product=2"></a>
-      <img src="https://static.wixstatic.com/media/e3c921_72852877781f47609ed2099aeb792674~mv2.jpg/v1/fit/w_500,h_500,q_90/file.jpg" alt="Corset">
-      <div class="actions">
-        <span class="heart">❤</span>
-        <span class="cart">💬</span>
-      </div>
-      <p>Corset Cafe</p>
+    <!-- Menú lateral -->
+    <div class="sidebar" id="sidebar">
+        <span class="close-btn" onclick="closeMenu()">✖</span>
+        <div class="user-info">
+            <div class="user-avatar" id="sidebar-avatar">US</div>
+            <div class="user-name" id="sidebar-name">Usuario</div>
+        </div>
+        <a href="barra.html">Inicio</a>
+        <a href="publicar_producto.html">Publicar</a>
+        <a href="#">Notificaciones</a>
+        <a href="chat.html">Chats</a>
+        <a href="historial.html">Historial</a>
+        <a href="perfil.html">Perfil</a>
+        <a href="#">Ayuda</a>
+        <a href="favoritos.html">Mis Favoritos</a>
+
+        <button onclick="logout()" class="cerrar-sesion">Cerrar Sesión</button>
     </div>
 
-    <!-- Producto 3 -->
-    <div class="card">
-      <a class="card-link" href="producto.html"></a>
-      <img src="https://th.bing.com/th/id/OIP.vewfenftbHKrLMt4yaq72wHaHa?o=7rm=3&rs=1&pid=ImgDetMain&o=7&rm=3" alt="Portatil Gamer">
-      <div class="actions">
-        <span class="heart">❤</span>
-        <span class="cart">💬</span>
-      </div>
-      <p>Portatil Gamer</p>
-    </div>
+    <div class="overlay" id="overlay" onclick="closeMenu()"></div>
 
-    <!-- Producto 4 -->
-    <div class="card">
-      <a class="card-link" href="detalle_producto.html?product=4"></a>
-      <img src="https://tse3.mm.bing.net/th/id/OIP.X81k0hwApMg-aeIyPZJ3FwHaLH?rs=1&pid=ImgDetMain&o=7&rm=3">
-      <div class="actions">
-        <span class="heart">❤</span>
-        <span class="cart">💬</span>
-      </div>
-      <p>Libro Original 100 Años de Soledad</p>
-    </div>
+<script type="module">
 
-    <!-- Producto 5 -->
-    <div class="card">
-      <a class="card-link" href="detalle_producto.html?product=5"></a>
-      <img src="https://i.pinimg.com/originals/88/56/01/88560178cefcd0c2b80f74a19d25da05.jpg" alt="Chaqueta">
-      <div class="actions">
-        <span class="heart">❤</span>
-        <span class="cart">💬</span>
-      </div>
-      <p>Chaqueta</p>
-    </div>
+// Funciones menú
+window.openMenu = function () {
+    document.getElementById("sidebar").style.width = "280px";
+    document.getElementById("overlay").style.display = "block";
+};
+window.closeMenu = function () {
+    document.getElementById("sidebar").style.width = "0";
+    document.getElementById("overlay").style.display = "none";
+};
 
-    <!-- Producto 6 -->
-    <div class="card">
-      <a class="card-link" href="detalle_producto.html?product=6"></a>
-      <img src="https://tse4.mm.bing.net/th/id/OIP.msT8ljzpLJCeHj-pm5nGFAHaFQ?rs=1&pid=ImgDetMain&o=7&rm=3" alt="Libro Antiguo">
-      <div class="actions">
-        <span class="heart">❤</span>
-        <span class="cart">💬</span>
-      </div>
-      <p>Libro Antiguo</p>
-    </div>
+// Cargar productos del usuario en el select
+async function cargarProductos() {
+    const select = document.getElementById("producto");
+    select.innerHTML = `<option>Cargando...</option>`;
 
-    <!-- Producto 7 -->
-    <div class="card">
-      <a class="card-link" href="detalle_producto.html?product=7"></a>
-      <img src="https://tse2.mm.bing.net/th/id/OIP.HS2gyEs62-AxaCYyjz0DzgHaFj?rs=1&pid=ImgDetMain&o=7&rm=3" alt="Juego de sábanas">
-      <div class="actions">
-        <span class="heart">❤</span>
-        <span class="cart">💬</span>
-      </div>
-      <p>airforce one</p>
-    </div>
-
-    <!-- Producto 8 -->
-    <div class="card">
-      <a class="card-link" href="detalle_producto.html?product=8"></a>
-      <img src="https://th.bing.com/th/id/R.64d9b5d3dadef11e599dc455dbea3278?rik=b5ofwMvNbhVQEA&riu=http%3a%2f%2fblog.higarnovias.com%2fwp-content%2fuploads%2f2017%2f07%2fvestido-de-novia-6-682x1024.jpg&ehk=FaUCJSvcicRFhJB6LEMiUkGFv%2f%2foX8oWfF%2bq0fk2M1w%3d&risl=&pid=ImgRaw&r=0" alt="Vestido">
-      <div class="actions">
-        <span class="heart">❤</span>
-        <span class="cart">💬</span>
-      </div>
-      <p>Vestido de Novia</p>
-    </div>
-
-    <!-- Producto 9 -->
-    <div class="card">
-      <a class="card-link" href="detalle_producto.html?product=9"></a>
-      <img src="https://tse3.mm.bing.net/th/id/OIP.AJvBxVsx065D0XWGSnhO2AAAAA?rs=1&pid=ImgDetMain&o=7&rm=3" alt="Corset">
-      <div class="actions">
-        <span class="heart">❤</span>
-        <span class="cart">💬</span>
-      </div>
-      <p>libro El hijo del ajedrecista</p>
-    </div>
-    
-    <!-- Producto 10-->
-    <div class="card">
-      <a class="card-link" href="detalle_producto.html?product=10"></a>
-      <img src="https://tse3.mm.bing.net/th/id/OIP.T-jbfRCPv9yvoRF313J98AHaHa?rs=1&pid=ImgDetMain&o=7&rm=3" alt="Corset">
-      <div class="actions">
-        <span class="heart">❤</span>
-        <span class="cart">💬</span>
-      </div>
-      <p>pantalon bota campana</p>
-    </div>
-  </section>
-  
-  <script>
-    const sidebar = document.getElementById("sidebar");
-    const overlay = document.getElementById("overlay");
-
-    function openMenu() {
-      sidebar.style.width = "250px"; // abre desde la derecha
-      overlay.style.display = "block";
+    const usuario = JSON.parse(localStorage.getItem("usuario"));
+    if (!usuario) {
+        select.innerHTML = `<option>No hay usuario logueado</option>`;
+        return;
     }
 
-    function closeMenu() {
-      sidebar.style.width = "0";
-      overlay.style.display = "none";
+    const userId = usuario.id;
+
+    try {
+        const response = await fetch(`http://localhost:5000/productos-usuario/${userId}`);
+        const data = await response.json();
+
+        if (!data.success || data.productos.length === 0) {
+            select.innerHTML = `<option>No tienes productos publicados</option>`;
+            return;
+        }
+
+        select.innerHTML = "";
+        data.productos.forEach(p => {
+            const opt = document.createElement("option");
+            opt.value = p.id_producto;
+            opt.textContent = p.titulo || "(Sin título)";
+            select.appendChild(opt);
+        });
+
+    } catch (error) {
+        console.error("ERROR FETCH:", error);
+        select.innerHTML = `<option>Error al cargar productos</option>`;
+    }
+}
+
+// Publicar subasta
+document.getElementById("formSubasta").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const usuario = JSON.parse(localStorage.getItem("usuario"));
+    if (!usuario) {
+        alert("Debes iniciar sesión para publicar una subasta.");
+        return;
     }
 
-    // Prevenir que los clicks en los iconos de corazón y carrito activen el enlace
-    document.querySelectorAll('.heart, .cart').forEach(icon => {
-      icon.addEventListener('click', function(e) {
-        e.stopPropagation();
-        e.preventDefault();
-        // Aquí puedes agregar la lógica para favoritos o carrito
-        alert('Funcionalidad de ' + (this.classList.contains('heart') ? 'favoritos' : 'carrito') + ' activada');
-      });
-    });
-  </script>
+    const id_usuario = usuario.id;
+    const id_producto = document.getElementById("producto").value;
+    const monto = document.getElementById("precio").value;
 
+    if (!id_producto || !monto) {
+        alert("Completa todos los campos.");
+        return;
+    }
+
+    try {
+        const response = await fetch("http://localhost:5000/publicar-subasta", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id_usuario, id_producto, precio_inicial: monto })
+        });
+        const data = await response.json();
+
+        if (data.success) {
+            alert("Subasta publicada con éxito.");
+            window.location.href = "lista_subastas.html";
+        } else {
+            alert("Error: " + data.message);
+        }
+    } catch (error) {
+        console.error("ERROR al publicar subasta:", error);
+        alert("Error en la conexión con el servidor.");
+    }
+});
+
+document.addEventListener("DOMContentLoaded", cargarProductos);
+
+</script>
 </body>
 </html>
