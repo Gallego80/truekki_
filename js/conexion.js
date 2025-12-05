@@ -7,12 +7,13 @@ const multer = require('multer');
 const app = express();
 const port = 5000;
 
-// Sirve la carpeta uploads como pública
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+// 📌 Servir archivos estáticos
+app.use(express.static(path.join(__dirname, "vistas")));
+app.use(express.static(path.join(__dirname, "css")));
+app.use(express.static(path.join(__dirname, "estilos")));
 
 // Configuración de CORS
 app.use((req, res, next) => {
@@ -23,33 +24,48 @@ app.use((req, res, next) => {
 });
 
 // Configuración de multer para imágenes
-const storage = multer.diskStorage({
-    destination: function(req, file, cb) {
-        cb(null, 'uploads/'); // Carpeta donde se guardarán las imágenes
-    },
-    filename: function(req, file, cb) {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, uniqueSuffix + path.extname(file.originalname)); // Evita conflictos de nombres
-    }
-});
-
+const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-// Conexión a MySQL
-let conexion = mysql.createConnection({
-    host: 'localhost',
-    database: 'truekki',
-    user: 'root',
-    password: ''
-});
+// ✅ CONEXIÓN A MYSQL CON RECONEXIÓN AUTOMÁTICA
+let conexion;
 
-conexion.connect(function(error){
-    if(error){
-        console.error("Error de conexión:", error);
-    }else{
-        console.log("¡Conexión exitosa!");
-    }
-});
+function handleDisconnect() {
+    conexion = mysql.createConnection({
+        host: 'localhost',
+        database: 'truekki',
+        user: 'root',
+        password: '',
+        connectTimeout: 60000,
+        acquireTimeout: 60000,
+        timeout: 60000,
+        multipleStatements: true
+    });
+
+    conexion.connect(function(error) {
+        if(error) {
+            console.error("❌ Error de conexión:", error);
+            console.log("🔄 Reintentando conexión en 2 segundos...");
+            setTimeout(handleDisconnect, 2000);
+        } else {
+            console.log("✅ ¡Conexión exitosa a MySQL!");
+        }
+    });
+
+    conexion.on('error', function(err) {
+        console.error('❌ Error en la base de datos:', err);
+        if(err.code === 'PROTOCOL_CONNECTION_LOST' || 
+           err.code === 'ECONNRESET' ||
+           err.code === 'PROTOCOL_ENQUEUE_AFTER_FATAL_ERROR' ||
+           err.fatal) {
+            console.log('🔄 Reconectando a la base de datos...');
+            handleDisconnect();
+        }
+    });
+}
+
+// Iniciar conexión
+handleDisconnect();
 
 // Servir archivos estáticos
 app.use(express.static(path.join(__dirname, '../')));
@@ -67,7 +83,6 @@ app.get('/vistas/login.html', (req, res) => {
     res.sendFile(path.join(__dirname, '../vistas/login.html'));
 });
 
-
 // ✅ REGISTRO MODIFICADO - Sin teléfono y dirección obligatorios
 app.post('/registro', async (req, res) => {
     const { nombre, email, password, confirmPassword } = req.body;
@@ -79,17 +94,14 @@ app.post('/registro', async (req, res) => {
         return dominiosValidos.includes(dominio);
     }
 
-    // Validación de email
     if (!validarDominio(email)) {
         return res.status(400).json({ success: false, message: 'Dominio de correo no válido' });
     }
 
-    // ✅ VALIDACIÓN CORREGIDA - Solo campos esenciales
     if (!nombre || !email || !password) {
         return res.status(400).json({ success: false, message: 'Nombre, email y contraseña son obligatorios' });
     }
 
-    // Validar confirmación de contraseña si está presente
     if (confirmPassword && password !== confirmPassword) {
         return res.status(400).json({ success: false, message: 'Las contraseñas no coinciden' });
     }
@@ -111,8 +123,6 @@ app.post('/registro', async (req, res) => {
             }
 
             const hashedPassword = await bcrypt.hash(password, 10);
-            
-            // ✅ INSERT modificado - teléfono y dirección como NULL por defecto
             const insertUserQuery = 'INSERT INTO usuario (nombre, email, contraseña, numero_telefono, direccion) VALUES (?, ?, ?, NULL, NULL)';
             
             conexion.query(insertUserQuery, [nombre, email, hashedPassword], (error, results) => {
@@ -135,13 +145,11 @@ app.post('/registro', async (req, res) => {
 app.post('/login', async (req, res) => {
     const { email, password } = req.body;
 
-    // Validaciones básicas
     if (!email || !password) {
         return res.status(400).json({ success: false, message: 'Email y contraseña son obligatorios' });
     }
 
     try {
-        // Buscar usuario por email
         const query = 'SELECT * FROM usuario WHERE email = ?';
         conexion.query(query, [email], async (error, results) => {
             if (error) {
@@ -154,15 +162,12 @@ app.post('/login', async (req, res) => {
             }
 
             const usuario = results[0];
-
-            // Verificar contraseña
             const passwordMatch = await bcrypt.compare(password, usuario.contraseña);
             
             if (!passwordMatch) {
                 return res.status(401).json({ success: false, message: 'Credenciales incorrectas' });
             }
 
-            // Verificar si el usuario está activo
             if (usuario.estado !== 'activo') {
                 return res.status(401).json({ 
                     success: false, 
@@ -170,7 +175,6 @@ app.post('/login', async (req, res) => {
                 });
             }
 
-            // Login exitoso
             res.status(200).json({ 
                 success: true, 
                 message: 'Login exitoso',
@@ -187,9 +191,8 @@ app.post('/login', async (req, res) => {
     }
 });
 
-// ✅ NUEVAS RUTAS PARA PRODUCTOS
+// ✅ RUTAS PARA PRODUCTOS
 
-// Obtener todos los productos
 app.get('/productos', (req, res) => {
     const query = 'SELECT p.*, u.nombre as usuario_nombre FROM productos p JOIN usuario u ON p.id_usuario = u.id_usuario ORDER BY p.fecha_publicacion DESC';
     
@@ -203,7 +206,6 @@ app.get('/productos', (req, res) => {
     });
 });
 
-// Publicar nuevo producto (sin imagen)
 app.post('/publicar-producto', (req, res) => {
     const { titulo, categoria, estado, descripcion, precio, ciudad, barrio, contacto, id_usuario } = req.body;
     
@@ -228,7 +230,6 @@ app.post('/publicar-producto', (req, res) => {
     });
 });
 
-// Subir imagen de producto
 app.post('/subir-imagen-producto/:id', upload.single('foto'), (req, res) => {
     const productId = req.params.id;
     const image = req.file;
@@ -249,7 +250,6 @@ app.post('/subir-imagen-producto/:id', upload.single('foto'), (req, res) => {
     });
 });
 
-// Obtener imagen de producto
 app.get('/imagen-producto/:id', (req, res) => {
     const productId = req.params.id;
     const query = 'SELECT foto, foto_nombre FROM productos WHERE id_producto = ?';
@@ -277,10 +277,16 @@ app.get('/imagen-producto/:id', (req, res) => {
     });
 });
 
-// Obtener productos por usuario
 app.get('/productos-usuario/:idUsuario', (req, res) => {
     const idUsuario = req.params.idUsuario;
-    const query = 'SELECT * FROM productos WHERE id_usuario = ? ORDER BY fecha_publicacion DESC';
+    
+    const query = `
+        SELECT p.*, 
+               (SELECT COUNT(*) FROM intercambio i WHERE i.id_producto1 = p.id_producto OR i.id_producto2 = p.id_producto) as intercambios_realizados
+        FROM productos p 
+        WHERE p.id_usuario = ? 
+        ORDER BY p.fecha_publicacion DESC
+    `;
     
     conexion.query(query, [idUsuario], (error, results) => {
         if (error) {
@@ -292,84 +298,6 @@ app.get('/productos-usuario/:idUsuario', (req, res) => {
     });
 });
 
-
-// ✅ Actualizar producto
-app.put('/producto/:id', upload.single('foto'), (req, res) => {
-    console.log("Datos recibidos para actualización:", req.body);
-    const idProducto = req.params.id;
-    const { titulo, descripcion, precio, categoria, estado, ciudad, barrio, contacto } = req.body;
-    const foto = req.file;
-
-    console.log("EDIT PRODUCTO llamado. id:", idProducto);
-    console.log("req.body:", req.body);
-    console.log("req.file:", req.file);
-
-    if (!titulo || !descripcion || !precio || !categoria || !estado || !ciudad || !barrio || !contacto) {
-      return res.status(400).json({ success: false, message: 'Datos obligatorios incompletos' });
-    }
-
-    let query = `
-      UPDATE productos 
-      SET titulo = ?, descripcion = ?, precio = ?, categoria = ?, estado = ?, ciudad = ?, barrio = ?, contacto = ?
-      WHERE id_producto = ?
-    `;
-    let values = [titulo, descripcion, precio, categoria, estado, ciudad, barrio, contacto, idProducto];
-
-    if (foto) {
-      console.log("Hay foto, se incluirá en la actualización");
-      query = `
-        UPDATE productos 
-        SET titulo = ?, descripcion = ?, precio = ?, categoria = ?, estado = ?, ciudad = ?, barrio = ?, contacto = ?, foto = ?, foto_nombre = ?
-        WHERE id_producto = ?
-      `;
-      values = [titulo, descripcion, precio, categoria, estado, ciudad, barrio, contacto, foto.buffer, foto.originalname, idProducto];
-    }
-
-    console.log("SQL a ejecutar:", query);
-    console.log("Valores:", values);
-
-    conexion.query(query, values, (error, results) => {
-      if (error) {
-        console.error("Error al actualizar producto:", error);
-        return res.status(500).json({ success: false, message: 'Error al actualizar el producto' });
-      }
-      if (results.affectedRows === 0) {
-        return res.status(404).json({ success: false, message: 'Producto no encontrado' });
-      }
-      res.status(200).json({ success: true, message: 'Producto actualizado correctamente' });
-    });
-});
-
-
-// ✅ Marcar producto como vendido
-app.put('/marcar-vendido/:id', (req, res) => {
-    const { id } = req.params;
-    const { disponible } = req.body;
-    console.log("Entrando a marcar-vendido:", id);
-    console.log("req.body.disponible tipo:", typeof disponible, "valor:", disponible);
-
-
-    if (typeof disponible !== 'boolean') {
-        return res.status(400).json({ success: false, message: 'El campo disponible debe ser true o false' });
-    }
-
-    const query = 'UPDATE productos SET disponible = ? WHERE id_producto = ?';
-
-    conexion.query(query, [disponible, id], (error, results) => {
-        if (error) {
-            console.error("Error actualizando producto:", error);
-            return res.status(500).json({ success: false, message: 'Error al actualizar producto' });
-        }
-
-        if (results.affectedRows === 0) {
-            return res.status(404).json({ success: false, message: 'Producto no encontrado' });
-        }
-
-        res.status(200).json({ success: true, message: 'Estado del producto actualizado' });
-    });
-});
-
-// ✅ Ruta para eliminar producto - VERSIÓN CORREGIDA
 app.delete('/producto/:id', (req, res) => {
     const productId = req.params.id;
     
@@ -378,7 +306,6 @@ app.delete('/producto/:id', (req, res) => {
         return res.status(400).json({ success: false, message: 'ID de producto inválido' });
     }
 
-    // Primero verificamos que el producto exista
     const checkQuery = 'SELECT * FROM productos WHERE id_producto = ?';
     
     conexion.query(checkQuery, [productId], (error, results) => {
@@ -392,7 +319,6 @@ app.delete('/producto/:id', (req, res) => {
             return res.status(404).json({ success: false, message: 'Producto no encontrado' });
         }
         
-        // Eliminar el producto
         const deleteQuery = 'DELETE FROM productos WHERE id_producto = ?';
         
         conexion.query(deleteQuery, [productId], (error, results) => {
@@ -401,7 +327,7 @@ app.delete('/producto/:id', (req, res) => {
                 return res.status(500).json({ success: false, message: 'Error al eliminar producto: ' + error.message });
             }
             
-            console.log(" Producto eliminado exitosamente ID:", productId);
+            console.log("✅ Producto eliminado exitosamente ID:", productId);
             res.status(200).json({ 
                 success: true, 
                 message: 'Producto eliminado exitosamente',
@@ -411,202 +337,6 @@ app.delete('/producto/:id', (req, res) => {
     });
 });
 
-// ✅ Ruta para obtener información del usuario por ID
-app.get('/usuario/:id', (req, res) => {
-    const userId = req.params.id;
-    
-    const query = 'SELECT id_usuario, nombre, email, numero_telefono, direccion, fecha_registro, verificado, estado FROM usuario WHERE id_usuario = ?';
-    
-    conexion.query(query, [userId], (error, results) => {
-        if (error) {
-            console.error("Error obteniendo usuario:", error);
-            return res.status(500).json({ success: false, message: 'Error al obtener información del usuario' });
-        }
-        
-        if (results.length === 0) {
-            return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
-        }
-        
-        res.status(200).json({ success: true, usuario: results[0] });
-    });
-});
-
-// ✅ Ruta para actualizar información del usuario
-app.put('/usuario/:id', (req, res) => {
-    const userId = req.params.id;
-    const { nombre, numero_telefono, direccion, bio } = req.body;
-    
-    const query = 'UPDATE usuario SET nombre = ?, numero_telefono = ?, direccion = ?, bio = ? WHERE id_usuario = ?';
-    
-    conexion.query(query, [nombre, numero_telefono, direccion, bio, userId], (error, results) => {
-        if (error) {
-            console.error("Error actualizando usuario:", error);
-            return res.status(500).json({ success: false, message: 'Error al actualizar información del usuario' });
-        }
-        
-        res.status(200).json({ success: true, message: 'Información actualizada correctamente' });
-    });
-});
-
-// ✅ RUTAS PARA FAVORITOS
-
-// Agregar producto a favoritos
-app.post('/favoritos/agregar', (req, res) => {
-    const { id_usuario, id_producto } = req.body;
-    
-    console.log("📍 Agregando a favoritos - Usuario:", id_usuario, "Producto:", id_producto);
-    
-    if (!id_usuario || !id_producto) {
-        return res.status(400).json({ success: false, message: 'Datos incompletos' });
-    }
-    
-    // Verificar si el producto existe
-    const checkProductQuery = 'SELECT * FROM productos WHERE id_producto = ?';
-    conexion.query(checkProductQuery, [id_producto], (error, results) => {
-        if (error) {
-            console.error("❌ Error verificando producto:", error);
-            return res.status(500).json({ success: false, message: 'Error al verificar producto' });
-        }
-        
-        if (results.length === 0) {
-            return res.status(404).json({ success: false, message: 'Producto no encontrado' });
-        }
-        
-        // Verificar si ya está en favoritos
-        const checkFavoriteQuery = 'SELECT * FROM favoritos WHERE id_usuario = ? AND id_producto = ?';
-        conexion.query(checkFavoriteQuery, [id_usuario, id_producto], (error, results) => {
-            if (error) {
-                console.error("❌ Error verificando favorito:", error);
-                return res.status(500).json({ success: false, message: 'Error al verificar favorito' });
-            }
-            
-            if (results.length > 0) {
-                return res.status(400).json({ success: false, message: 'El producto ya está en favoritos' });
-            }
-            
-            // Agregar a favoritos
-            const insertQuery = 'INSERT INTO favoritos (id_usuario, id_producto) VALUES (?, ?)';
-            conexion.query(insertQuery, [id_usuario, id_producto], (error, results) => {
-                if (error) {
-                    console.error("❌ Error agregando a favoritos:", error);
-                    return res.status(500).json({ success: false, message: 'Error al agregar a favoritos' });
-                }
-                
-                console.log("✅ Producto agregado a favoritos ID:", results.insertId);
-                res.status(200).json({ 
-                    success: true, 
-                    message: 'Producto agregado a favoritos',
-                    id_favorito: results.insertId
-                });
-            });
-        });
-    });
-});
-
-// Eliminar producto de favoritos
-app.post('/favoritos/eliminar', (req, res) => {
-    const { id_usuario, id_producto } = req.body;
-    
-    console.log("📍 Eliminando de favoritos - Usuario:", id_usuario, "Producto:", id_producto);
-    
-    if (!id_usuario || !id_producto) {
-        return res.status(400).json({ success: false, message: 'Datos incompletos' });
-    }
-    
-    const deleteQuery = 'DELETE FROM favoritos WHERE id_usuario = ? AND id_producto = ?';
-    conexion.query(deleteQuery, [id_usuario, id_producto], (error, results) => {
-        if (error) {
-            console.error("❌ Error eliminando de favoritos:", error);
-            return res.status(500).json({ success: false, message: 'Error al eliminar de favoritos' });
-        }
-        
-        if (results.affectedRows === 0) {
-            return res.status(404).json({ success: false, message: 'Producto no encontrado en favoritos' });
-        }
-        
-        console.log("✅ Producto eliminado de favoritos");
-        res.status(200).json({ 
-            success: true, 
-            message: 'Producto eliminado de favoritos'
-        });
-    });
-});
-
-// Obtener favoritos de un usuario
-app.get('/favoritos/usuario/:idUsuario', (req, res) => {
-    const idUsuario = req.params.idUsuario;
-    
-    console.log("📍 Obteniendo favoritos del usuario:", idUsuario);
-    
-    const query = `
-        SELECT p.*, u.nombre as usuario_nombre, f.fecha_agregado 
-        FROM favoritos f 
-        JOIN productos p ON f.id_producto = p.id_producto 
-        JOIN usuario u ON p.id_usuario = u.id_usuario 
-        WHERE f.id_usuario = ? 
-        ORDER BY f.fecha_agregado DESC
-    `;
-    
-    conexion.query(query, [idUsuario], (error, results) => {
-        if (error) {
-            console.error("❌ Error obteniendo favoritos:", error);
-            return res.status(500).json({ success: false, message: 'Error al obtener favoritos' });
-        }
-        
-        console.log("✅ Favoritos encontrados:", results.length);
-        res.status(200).json({ 
-            success: true, 
-            favoritos: results 
-        });
-    });
-});
-
-// Verificar si un producto está en favoritos
-app.get('/favoritos/verificar/:idUsuario/:idProducto', (req, res) => {
-    const { idUsuario, idProducto } = req.params;
-    
-    const query = 'SELECT * FROM favoritos WHERE id_usuario = ? AND id_producto = ?';
-    conexion.query(query, [idUsuario, idProducto], (error, results) => {
-        if (error) {
-            console.error("❌ Error verificando favorito:", error);
-            return res.status(500).json({ success: false, message: 'Error al verificar favorito' });
-        }
-        
-        res.status(200).json({ 
-            success: true, 
-            esFavorito: results.length > 0 
-        });
-    });
-});
-
-
-
-// Verificar si el usuario está logueado
-function checkAuth() {
-    const isLoggedIn = localStorage.getItem('isLoggedIn');
-    const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
-    
-    if (!isLoggedIn || !usuario.id) {
-        window.location.href = 'login.html';
-        return false;
-    }
-    
-    return true;
-}
-
-// Obtener información del usuario logueado
-function getCurrentUser() {
-    return JSON.parse(localStorage.getItem('usuario') || '{}');
-}
-
-// Cerrar sesión
-function logout() {
-    localStorage.removeItem('usuario');
-    localStorage.removeItem('isLoggedIn');
-    window.location.href = 'login.html';
-}
-
-// ✅ Ruta para obtener un producto específico con información del vendedor
 app.get('/producto/:id', (req, res) => {
     const productId = req.params.id;
     
@@ -635,7 +365,6 @@ app.get('/producto/:id', (req, res) => {
             email: producto.email
         };
         
-        // Remover datos del vendedor del objeto producto
         delete producto.vendedor_nombre;
         delete producto.numero_telefono;
         delete producto.email;
@@ -648,14 +377,223 @@ app.get('/producto/:id', (req, res) => {
     });
 });
 
+app.put('/producto/:id', upload.single('foto'), (req, res) => {
+    const idProducto = req.params.id;
+    const { titulo, descripcion, precio, categoria, estado, ciudad, barrio, contacto } = req.body;
+    const foto = req.file;
 
-// ✅ RUTAS PARA EL CHAT - COLOCAR DESPUÉS DE LAS RUTAS DE FAVORITOS
+    if (!titulo || !descripcion || !precio || !categoria || !estado || !ciudad || !barrio || !contacto) {
+        return res.status(400).json({ success: false, message: 'Datos obligatorios incompletos' });
+    }
 
-// Obtener conversaciones de un usuario - VERSIÓN CORREGIDA
+    let query = `
+        UPDATE productos 
+        SET titulo = ?, descripcion = ?, precio = ?, categoria = ?, estado = ?, ciudad = ?, barrio = ?, contacto = ?
+        WHERE id_producto = ?
+    `;
+    let values = [titulo, descripcion, precio, categoria, estado, ciudad, barrio, contacto, idProducto];
+
+    if (foto) {
+        query = `
+            UPDATE productos 
+            SET titulo = ?, descripcion = ?, precio = ?, categoria = ?, estado = ?, ciudad = ?, barrio = ?, contacto = ?, foto = ?, foto_nombre = ?
+            WHERE id_producto = ?
+        `;
+        values = [titulo, descripcion, precio, categoria, estado, ciudad, barrio, contacto, foto.buffer, foto.originalname, idProducto];
+    }
+
+    conexion.query(query, values, (error, results) => {
+        if (error) {
+            console.error("Error al actualizar producto:", error);
+            return res.status(500).json({ success: false, message: 'Error al actualizar el producto' });
+        }
+        if (results.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: 'Producto no encontrado' });
+        }
+        res.status(200).json({ success: true, message: 'Producto actualizado correctamente' });
+    });
+});
+
+app.put('/marcar-vendido/:id', (req, res) => {
+    const { id } = req.params;
+    const { disponible } = req.body;
+
+    if (typeof disponible !== 'boolean') {
+        return res.status(400).json({ success: false, message: 'El campo disponible debe ser true o false' });
+    }
+
+    const query = 'UPDATE productos SET disponible = ? WHERE id_producto = ?';
+
+    conexion.query(query, [disponible, id], (error, results) => {
+        if (error) {
+            console.error("Error actualizando producto:", error);
+            return res.status(500).json({ success: false, message: 'Error al actualizar producto' });
+        }
+
+        if (results.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: 'Producto no encontrado' });
+        }
+
+        res.status(200).json({ success: true, message: 'Estado del producto actualizado' });
+    });
+});
+
+// ✅ RUTAS PARA USUARIOS
+
+app.get('/usuario/:id', (req, res) => {
+    const userId = req.params.id;
+    
+    const query = 'SELECT id_usuario, nombre, email, numero_telefono, direccion, fecha_registro, verificado, estado FROM usuario WHERE id_usuario = ?';
+    
+    conexion.query(query, [userId], (error, results) => {
+        if (error) {
+            console.error("Error obteniendo usuario:", error);
+            return res.status(500).json({ success: false, message: 'Error al obtener información del usuario' });
+        }
+        
+        if (results.length === 0) {
+            return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
+        }
+        
+        res.status(200).json({ success: true, usuario: results[0] });
+    });
+});
+
+app.put('/usuario/:id', (req, res) => {
+    const userId = req.params.id;
+    const { nombre, numero_telefono, direccion, bio } = req.body;
+    
+    const query = 'UPDATE usuario SET nombre = ?, numero_telefono = ?, direccion = ?, bio = ? WHERE id_usuario = ?';
+    
+    conexion.query(query, [nombre, numero_telefono, direccion, bio, userId], (error, results) => {
+        if (error) {
+            console.error("Error actualizando usuario:", error);
+            return res.status(500).json({ success: false, message: 'Error al actualizar información del usuario' });
+        }
+        
+        res.status(200).json({ success: true, message: 'Información actualizada correctamente' });
+    });
+});
+
+// ✅ RUTAS PARA FAVORITOS
+
+app.post('/favoritos/agregar', (req, res) => {
+    const { id_usuario, id_producto } = req.body;
+    
+    if (!id_usuario || !id_producto) {
+        return res.status(400).json({ success: false, message: 'Datos incompletos' });
+    }
+    
+    const checkProductQuery = 'SELECT * FROM productos WHERE id_producto = ?';
+    conexion.query(checkProductQuery, [id_producto], (error, results) => {
+        if (error) {
+            console.error("❌ Error verificando producto:", error);
+            return res.status(500).json({ success: false, message: 'Error al verificar producto' });
+        }
+        
+        if (results.length === 0) {
+            return res.status(404).json({ success: false, message: 'Producto no encontrado' });
+        }
+        
+        const checkFavoriteQuery = 'SELECT * FROM favoritos WHERE id_usuario = ? AND id_producto = ?';
+        conexion.query(checkFavoriteQuery, [id_usuario, id_producto], (error, results) => {
+            if (error) {
+                console.error("❌ Error verificando favorito:", error);
+                return res.status(500).json({ success: false, message: 'Error al verificar favorito' });
+            }
+            
+            if (results.length > 0) {
+                return res.status(400).json({ success: false, message: 'El producto ya está en favoritos' });
+            }
+            
+            const insertQuery = 'INSERT INTO favoritos (id_usuario, id_producto) VALUES (?, ?)';
+            conexion.query(insertQuery, [id_usuario, id_producto], (error, results) => {
+                if (error) {
+                    console.error("❌ Error agregando a favoritos:", error);
+                    return res.status(500).json({ success: false, message: 'Error al agregar a favoritos' });
+                }
+                
+                res.status(200).json({ 
+                    success: true, 
+                    message: 'Producto agregado a favoritos',
+                    id_favorito: results.insertId
+                });
+            });
+        });
+    });
+});
+
+app.post('/favoritos/eliminar', (req, res) => {
+    const { id_usuario, id_producto } = req.body;
+    
+    if (!id_usuario || !id_producto) {
+        return res.status(400).json({ success: false, message: 'Datos incompletos' });
+    }
+    
+    const deleteQuery = 'DELETE FROM favoritos WHERE id_usuario = ? AND id_producto = ?';
+    conexion.query(deleteQuery, [id_usuario, id_producto], (error, results) => {
+        if (error) {
+            console.error("❌ Error eliminando de favoritos:", error);
+            return res.status(500).json({ success: false, message: 'Error al eliminar de favoritos' });
+        }
+        
+        if (results.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: 'Producto no encontrado en favoritos' });
+        }
+        
+        res.status(200).json({ 
+            success: true, 
+            message: 'Producto eliminado de favoritos'
+        });
+    });
+});
+
+app.get('/favoritos/usuario/:idUsuario', (req, res) => {
+    const idUsuario = req.params.idUsuario;
+    
+    const query = `
+        SELECT p.*, u.nombre as usuario_nombre, f.fecha_agregado 
+        FROM favoritos f 
+        JOIN productos p ON f.id_producto = p.id_producto 
+        JOIN usuario u ON p.id_usuario = u.id_usuario 
+        WHERE f.id_usuario = ? 
+        ORDER BY f.fecha_agregado DESC
+    `;
+    
+    conexion.query(query, [idUsuario], (error, results) => {
+        if (error) {
+            console.error("❌ Error obteniendo favoritos:", error);
+            return res.status(500).json({ success: false, message: 'Error al obtener favoritos' });
+        }
+        
+        res.status(200).json({ 
+            success: true, 
+            favoritos: results 
+        });
+    });
+});
+
+app.get('/favoritos/verificar/:idUsuario/:idProducto', (req, res) => {
+    const { idUsuario, idProducto } = req.params;
+    
+    const query = 'SELECT * FROM favoritos WHERE id_usuario = ? AND id_producto = ?';
+    conexion.query(query, [idUsuario, idProducto], (error, results) => {
+        if (error) {
+            console.error("❌ Error verificando favorito:", error);
+            return res.status(500).json({ success: false, message: 'Error al verificar favorito' });
+        }
+        
+        res.status(200).json({ 
+            success: true, 
+            esFavorito: results.length > 0 
+        });
+    });
+});
+
+// ✅ RUTAS PARA EL CHAT
+
 app.get('/chat/conversaciones/:idUsuario', (req, res) => {
     const idUsuario = parseInt(req.params.idUsuario);
-    
-    console.log("📍 Obteniendo conversaciones del usuario:", idUsuario);
     
     if (!idUsuario || isNaN(idUsuario)) {
         return res.status(400).json({ success: false, message: 'ID de usuario inválido' });
@@ -692,7 +630,6 @@ app.get('/chat/conversaciones/:idUsuario', (req, res) => {
             return res.status(500).json({ success: false, message: 'Error al obtener conversaciones: ' + error.message });
         }
         
-        console.log("✅ Conversaciones encontradas:", results.length);
         res.status(200).json({ 
             success: true, 
             conversaciones: results 
@@ -700,17 +637,13 @@ app.get('/chat/conversaciones/:idUsuario', (req, res) => {
     });
 });
 
-// Crear o obtener conversación entre dos usuarios - VERSIÓN CORREGIDA
 app.post('/chat/conversacion', (req, res) => {
     const { id_usuario1, id_usuario2 } = req.body;
-    
-    console.log("📍 Buscando conversación entre:", id_usuario1, "y", id_usuario2);
     
     if (!id_usuario1 || !id_usuario2) {
         return res.status(400).json({ success: false, message: 'Datos incompletos' });
     }
     
-    // Ordenar los IDs para evitar duplicados
     const [minId, maxId] = [Math.min(id_usuario1, id_usuario2), Math.max(id_usuario1, id_usuario2)];
     
     const query = `
@@ -730,7 +663,6 @@ app.post('/chat/conversacion', (req, res) => {
         }
         
         if (results.length > 0) {
-            console.log("✅ Conversación encontrada ID:", results[0].id_conversacion);
             return res.status(200).json({ 
                 success: true, 
                 conversacion: results[0],
@@ -738,7 +670,6 @@ app.post('/chat/conversacion', (req, res) => {
             });
         }
         
-        // Crear nueva conversación
         const insertQuery = 'INSERT INTO conversaciones (id_usuario1, id_usuario2) VALUES (?, ?)';
         conexion.query(insertQuery, [minId, maxId], (error, results) => {
             if (error) {
@@ -746,7 +677,6 @@ app.post('/chat/conversacion', (req, res) => {
                 return res.status(500).json({ success: false, message: 'Error al crear conversación' });
             }
             
-            // Obtener la conversación creada con información de usuarios
             const getQuery = `
                 SELECT c.*, 
                        u1.nombre as usuario1_nombre,
@@ -763,7 +693,6 @@ app.post('/chat/conversacion', (req, res) => {
                     return res.status(500).json({ success: false, message: 'Error al obtener conversación' });
                 }
                 
-                console.log("✅ Nueva conversación creada ID:", results.insertId);
                 res.status(200).json({ 
                     success: true, 
                     conversacion: conversacionResults[0],
@@ -774,17 +703,13 @@ app.post('/chat/conversacion', (req, res) => {
     });
 });
 
-// Enviar mensaje - VERSIÓN CORREGIDA
 app.post('/chat/mensaje', (req, res) => {
     const { id_conversacion, id_remitente, mensaje } = req.body;
-    
-    console.log("📍 Enviando mensaje a conversación:", id_conversacion);
     
     if (!id_conversacion || !id_remitente || !mensaje) {
         return res.status(400).json({ success: false, message: 'Datos incompletos' });
     }
     
-    // Insertar mensaje
     const insertQuery = 'INSERT INTO mensajes (id_conversacion, id_remitente, mensaje) VALUES (?, ?, ?)';
     conexion.query(insertQuery, [id_conversacion, id_remitente, mensaje], (error, results) => {
         if (error) {
@@ -1097,58 +1022,271 @@ app.post('/calificaciones/calificar', (req, res) => {
     });
 });
 
+// ✅ Actualizar producto
+app.put('/producto/:id', upload.single('foto'), (req, res) => {
+    console.log("Datos recibidos para actualización:", req.body);
+    const idProducto = req.params.id;
+    const { titulo, descripcion, precio, categoria, estado, ciudad, barrio, contacto } = req.body;
+    const foto = req.file;
 
-app.post('/publicar-subasta', upload.single('foto'), (req, res) => {
-    const { id_usuario, id_producto, precio_inicial } = req.body;
+    console.log("EDIT PRODUCTO llamado. id:", idProducto);
+    console.log("req.body:", req.body);
+    console.log("req.file:", req.file);
 
-    if (!id_usuario || !id_producto || !precio_inicial || !req.file) {
-        return res.status(400).json({ success: false, message: "Faltan datos" });
+    if (!titulo || !descripcion || !precio || !categoria || !estado || !ciudad || !barrio || !contacto) {
+      return res.status(400).json({ success: false, message: 'Datos obligatorios incompletos' });
     }
 
-    const nombreImagen = req.file.filename; // Nombre que se guardará en la base de datos
-
-    const sql = `
-        INSERT INTO subastas (id_usuario, id_producto, monto, fecha, imagen)
-        VALUES (?, ?, ?, NOW(), ?)
+    let query = `
+      UPDATE productos 
+      SET titulo = ?, descripcion = ?, precio = ?, categoria = ?, estado = ?, ciudad = ?, barrio = ?, contacto = ?
+      WHERE id_producto = ?
     `;
+    let values = [titulo, descripcion, precio, categoria, estado, ciudad, barrio, contacto, idProducto];
 
-    conexion.query(sql, [id_usuario, id_producto, precio_inicial, nombreImagen], (err, result) => {
-        if (err) {
-            console.error(err);
-            return res.status(500).json({ success: false, message: "Error al crear subasta" });
-        }
+    if (foto) {
+      console.log("Hay foto, se incluirá en la actualización");
+      query = `
+        UPDATE productos 
+        SET titulo = ?, descripcion = ?, precio = ?, categoria = ?, estado = ?, ciudad = ?, barrio = ?, contacto = ?, foto = ?, foto_nombre = ?
+        WHERE id_producto = ?
+      `;
+      values = [titulo, descripcion, precio, categoria, estado, ciudad, barrio, contacto, foto.buffer, foto.originalname, idProducto];
+    }
 
-        res.json({ success: true, message: "Subasta publicada correctamente" });
+    console.log("SQL a ejecutar:", query);
+    console.log("Valores:", values);
+
+    conexion.query(query, values, (error, results) => {
+      if (error) {
+        console.error("Error al actualizar producto:", error);
+        return res.status(500).json({ success: false, message: 'Error al actualizar el producto' });
+      }
+      if (results.affectedRows === 0) {
+        return res.status(404).json({ success: false, message: 'Producto no encontrado' });
+      }
+      res.status(200).json({ success: true, message: 'Producto actualizado correctamente' });
     });
 });
 
 
-// LISTAR SUBASTAS ACTIVAS
-app.get("/lista-subastas", (req, res) => {
-    const sql = `
-        SELECT 
-            s.id_subasta,
-            s.monto,
-            s.fecha,
-            p.titulo AS producto,
-            p.imagen,       -- <--- traemos la imagen del producto
-            u.nombre AS usuario
+// ✅ Marcar producto como vendido
+app.put('/marcar-vendido/:id', (req, res) => {
+    const { id } = req.params;
+    const { disponible } = req.body;
+    console.log("Entrando a marcar-vendido:", id);
+    console.log("req.body.disponible tipo:", typeof disponible, "valor:", disponible);
+
+
+    if (typeof disponible !== 'boolean') {
+        return res.status(400).json({ success: false, message: 'El campo disponible debe ser true o false' });
+    }
+
+    const query = 'UPDATE productos SET disponible = ? WHERE id_producto = ?';
+
+    conexion.query(query, [disponible, id], (error, results) => {
+        if (error) {
+            console.error("Error actualizando producto:", error);
+            return res.status(500).json({ success: false, message: 'Error al actualizar producto' });
+        }
+
+        if (results.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: 'Producto no encontrado' });
+        }
+
+        res.status(200).json({ success: true, message: 'Estado del producto actualizado' });
+    });
+});
+
+// ✅ RUTA CREAR SUBASTA - VERSIÓN CORREGIDA
+app.post("/crear-subasta", upload.single("foto"), async (req, res) => {
+    try {
+        console.log("📍 Creando subasta...");
+        console.log("Datos recibidos:", req.body);
+        console.log("Archivo recibido:", req.file);
+
+        const { titulo, descripcion, precio_inicial, id_usuario, duracion_horas } = req.body;
+        const foto = req.file;
+
+        // Validaciones
+        if (!titulo || !descripcion || !precio_inicial || !id_usuario) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Faltan campos obligatorios' 
+            });
+        }
+
+        if (!foto) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Debes subir una imagen' 
+            });
+        }
+
+        // Calcular fecha de fin
+        const duracion = duracion_horas || 24; // Por defecto 24 horas
+        const fechaFin = new Date();
+        fechaFin.setHours(fechaFin.getHours() + parseInt(duracion));
+
+        // ⭐ Insertar subasta con foto
+        const query = `
+            INSERT INTO subastas 
+            (titulo, descripcion, precio_inicial, precio_actual, id_usuario, fecha_fin, foto, foto_nombre, estado) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'activa')
+        `;
+
+        const params = [
+            titulo, 
+            descripcion, 
+            precio_inicial, 
+            precio_inicial, // precio_actual inicia igual al inicial
+            id_usuario, 
+            fechaFin,
+            foto.buffer, 
+            foto.originalname
+        ];
+
+        conexion.query(query, params, (error, results) => {
+            if (error) {
+                console.error("❌ Error insertando subasta:", error);
+                return res.status(500).json({ 
+                    success: false, 
+                    message: 'Error al crear subasta: ' + error.message 
+                });
+            }
+
+            console.log("✅ Subasta creada con ID:", results.insertId);
+            res.status(200).json({ 
+                success: true, 
+                message: 'Subasta creada exitosamente',
+                id_subasta: results.insertId
+            });
+        });
+
+    } catch (error) {
+        console.error("❌ Error en crear-subasta:", error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Error interno del servidor: ' + error.message 
+        });
+    }
+});
+
+
+app.get('/subastas', (req, res) => {
+    const query = `
+        SELECT s.*, u.nombre AS vendedor 
         FROM subastas s
-        JOIN productos p ON s.id_producto = p.id_producto
         JOIN usuario u ON s.id_usuario = u.id_usuario
-        ORDER BY s.fecha DESC
+        WHERE s.estado = 'activa'
+        ORDER BY s.fecha_inicio DESC
     `;
-    conexion.query(sql, (err, rows) => {
-        if (err) {
-            console.error(err);
-            return res.json({ success: false, message: "Error al listar subastas" });
+
+    conexion.query(query, (error, results) => {
+        if (error) {
+            console.error("❌ Error obteniendo subastas:", error);
+            return res.status(500).json({ success: false, message: "Error al obtener subastas" });
         }
-        res.json({ success: true, subastas: rows });
+
+        res.status(200).json({ success: true, subastas: results });
     });
 });
 
+app.get('/subastas/:id', (req, res) => {
+    const id = req.params.id;
 
+    const query = `
+        SELECT s.*, u.nombre AS vendedor 
+        FROM subastas s
+        JOIN usuario u ON s.id_usuario = u.id_usuario
+        WHERE id_subasta = ?
+    `;
 
+    conexion.query(query, [id], (error, results) => {
+        if (error) {
+            console.error("❌ Error obteniendo subasta:", error);
+            return res.status(500).json({ success: false, message: "Error al obtener subasta" });
+        }
+
+        if (results.length === 0) {
+            return res.status(404).json({ success: false, message: "Subasta no encontrada" });
+        }
+
+        res.status(200).json({ success: true, subasta: results[0] });
+    });
+});
+
+app.post('/subastas/pujar', (req, res) => {
+    const { id_subasta, id_usuario, monto } = req.body;
+
+    if (!id_subasta || !id_usuario || !monto) {
+        return res.status(400).json({ success: false, message: "Datos incompletos" });
+    }
+
+    const checkQuery = "SELECT * FROM subastas WHERE id_subasta = ? AND estado = 'activa'";
+    
+    conexion.query(checkQuery, [id_subasta], (error, results) => {
+        if (error) {
+            console.error("❌ Error verificando subasta:", error);
+            return res.status(500).json({ success: false });
+        }
+
+        if (results.length === 0) {
+            return res.status(404).json({ success: false, message: "Subasta no activa" });
+        }
+
+        const subasta = results[0];
+
+        if (monto <= subasta.precio_actual) {
+            return res.status(400).json({ success: false, message: "La puja debe ser mayor al precio actual" });
+        }
+
+        // Registrar puja
+        const pujaQuery = "INSERT INTO pujas (id_subasta, id_usuario, monto) VALUES (?, ?, ?)";
+
+        conexion.query(pujaQuery, [id_subasta, id_usuario, monto], (error) => {
+            if (error) {
+                console.error("❌ Error registrando puja:", error);
+                return res.status(500).json({ success: false });
+            }
+
+            // Actualizar precio actual
+            const updateQuery = "UPDATE subastas SET precio_actual = ? WHERE id_subasta = ?";
+
+            conexion.query(updateQuery, [monto, id_subasta], () => {
+                res.status(200).json({ success: true, message: "Puja realizada con éxito" });
+            });
+        });
+    });
+});
+
+app.get('/subastas/imagen/:id', (req, res) => {
+    const id = req.params.id;
+
+    const query = "SELECT foto, foto_nombre FROM subastas WHERE id_subasta = ?";
+
+    conexion.query(query, [id], (error, results) => {
+        if (error || results.length === 0 || !results[0].foto) {
+            return res.status(404).json({ success: false, message: "Imagen no encontrada" });
+        }
+
+        res.writeHead(200, {
+            "Content-Type": "image/jpeg",
+            "Content-Length": results[0].foto.length
+        });
+
+        res.end(results[0].foto);
+    });
+});
+
+setInterval(() => {
+    const query = `
+        UPDATE subastas 
+        SET estado = 'finalizada'
+        WHERE fecha_fin < NOW() AND estado = 'activa'
+    `;
+    conexion.query(query);
+}, 60000);
 
 
 // Iniciar servidor

@@ -1,154 +1,303 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Crear Subasta - TRUEKKI</title>
-    <link rel="stylesheet" href="../css/subastas.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TRUEKKI - Crear Subasta</title>
+
+  <!-- Tu estilo general -->
+  <link rel="stylesheet" href="../estilos/barra.css" />
+  <link rel="stylesheet" href="/css/subasta.css">
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 </head>
+
 <body>
-    <!-- HEADER TRUEKKI -->
-    <header class="main-header">
-        <div class="logo">TRUEKKI</div>
-        <div class="search-bar">
-            <input type="text" placeholder="Buscar productos..." />
-            <button class="btn-search">🔍</button>
-        </div>
-        <div class="icons">
-            <span class="icon menu-btn" onclick="openMenu()">☰</span>
-        </div>
-    </header>
+  <!-- 🔵 Barra superior -->
+  <header>
+    <div class="header-content">
+      <h1>TRUEKKI</h1>
 
+      <div class="search-bar">
+        <input type="text" placeholder="Buscar..." />
+        <button><i class="fas fa-search"></i></button>
+      </div>
+
+      <div class="icons">
+        <span class="icon menu-btn" onclick="openMenu()">
+          <i class="fas fa-bars"></i>
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- 🔵 Menú lateral -->
+  <div class="sidebar" id="sidebar">
+    <span class="close-btn" onclick="closeMenu()">✖</span>
+
+    <div class="user-info">
+      <div class="user-avatar" id="sidebar-avatar">US</div>
+      <div class="user-name" id="sidebar-name">Usuario</div>
+    </div>
+
+    <a href="publicar_producto.html"><i class="fas fa-plus-circle"></i> Publicar</a>
+    <a href="chat.html"><i class="fas fa-comments"></i> Chats</a>
+    <a href="subastas.html"><i class="fas fa-gavel"></i> Subastas</a>
+    <a href="lista-subasta.html"><i class="fas fa-list"></i> Lista de Subastas</a>
+
+    <button onclick="logout()" class="cerrar-sesion">
+      <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+    </button>
+  </div>
+
+  <!-- Overlay -->
+  <div class="overlay" id="overlay" onclick="closeMenu()"></div>
+
+  <!-- ⭐ CONTENIDO PRINCIPAL -->
+  <div class="container">
+    <div class="form-container">
+      <h2>🔨 Crear Nueva Subasta</h2>
+
+      <form id="formSubasta" enctype="multipart/form-data">
+        <div class="form-group">
+          <label>Título de la Subasta *</label>
+          <input type="text" name="titulo" required placeholder="Ej: Televisor Samsung 40 pulgadas" />
+        </div>
+
+        <div class="form-group">
+          <label>Descripción *</label>
+          <textarea name="descripcion" required placeholder="Describe las condiciones del producto"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Precio Inicial ($) *</label>
+          <input type="number" name="precio_inicial" required min="1" placeholder="Ej: 150000" />
+        </div>
+
+        <div class="form-group">
+          <label>Duración de la Subasta *</label>
+          <select name="duracion_horas" required>
+            <option value="">Selecciona duración</option>
+            <option value="1">1 hora</option>
+            <option value="3">3 horas</option>
+            <option value="6">6 horas</option>
+            <option value="12">12 horas</option>
+            <option value="24">24 horas (1 día)</option>
+            <option value="48">48 horas (2 días)</option>
+            <option value="72">72 horas (3 días)</option>
+            <option value="168">7 días</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Imagen del Producto *</label>
+          <input type="file" name="foto" accept="image/*" required onchange="mostrarVistaPrevia(event)" />
+          <img id="vistaPrevia" class="preview-img" alt="Vista previa de la imagen"/>
+        </div>
+
+        <button type="submit" class="submit-btn" id="btnSubmit">Publicar Subasta</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
     <div class="container">
-        <h2>Crear nueva subasta</h2>
-
-        <form id="formSubasta">
-            <div class="form-group">
-                <label for="producto">Producto</label>
-                <select id="producto" name="producto" required>
-                    <option value="">Selecciona un producto...</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>Precio inicial</label>
-                <input type="number" id="precio" placeholder="Ej: 50000" required />
-            </div>
-
-            <button class="btn" type="submit">Publicar subasta</button>
-        </form>
-    </div>
-
-    <!-- Menú lateral -->
-    <div class="sidebar" id="sidebar">
-        <span class="close-btn" onclick="closeMenu()">✖</span>
-        <div class="user-info">
-            <div class="user-avatar" id="sidebar-avatar">US</div>
-            <div class="user-name" id="sidebar-name">Usuario</div>
+      <div class="footer-content">
+        <div class="footer-section">
+          <h3>TRUEKKI</h3>
+          <p>Plataforma de intercambios y ventas.</p>
         </div>
-        <a href="barra.html">Inicio</a>
-        <a href="publicar_producto.html">Publicar</a>
-        <a href="#">Notificaciones</a>
-        <a href="chat.html">Chats</a>
-        <a href="historial.html">Historial</a>
-        <a href="perfil.html">Perfil</a>
-        <a href="#">Ayuda</a>
-        <a href="favoritos.html">Mis Favoritos</a>
+      </div>
 
-        <button onclick="logout()" class="cerrar-sesion">Cerrar Sesión</button>
+      <div class="copyright">
+        &copy; 2024 TRUEKKI - Todos los derechos reservados
+      </div>
     </div>
+  </footer>
 
-    <div class="overlay" id="overlay" onclick="closeMenu()"></div>
-
-<script type="module">
-
-// Funciones menú
-window.openMenu = function () {
-    document.getElementById("sidebar").style.width = "280px";
-    document.getElementById("overlay").style.display = "block";
-};
-window.closeMenu = function () {
-    document.getElementById("sidebar").style.width = "0";
-    document.getElementById("overlay").style.display = "none";
-};
-
-// Cargar productos del usuario en el select
-async function cargarProductos() {
-    const select = document.getElementById("producto");
-    select.innerHTML = `<option>Cargando...</option>`;
-
-    const usuario = JSON.parse(localStorage.getItem("usuario"));
-    if (!usuario) {
-        select.innerHTML = `<option>No hay usuario logueado</option>`;
-        return;
+  <script>
+    /* ==========================
+       FUNCIÓN LOGOUT
+    =========================== */
+    function logout() {
+      localStorage.removeItem('usuario');
+      localStorage.removeItem('isLoggedIn');
+      window.location.href = 'login.html';
     }
 
-    const userId = usuario.id;
+    /* ==========================
+       VERIFICAR AUTENTICACIÓN
+    =========================== */
+    function checkAuth() {
+      const usuario = localStorage.getItem('usuario');
+      if (!usuario) {
+        alert('Debes iniciar sesión para crear una subasta');
+        window.location.href = 'login.html';
+        return false;
+      }
+      return true;
+    }
 
-    try {
-        const response = await fetch(`http://localhost:5000/productos-usuario/${userId}`);
-        const data = await response.json();
+    // Verificar al cargar
+    if (!checkAuth()) {
+      // Ya redirige
+    }
 
-        if (!data.success || data.productos.length === 0) {
-            select.innerHTML = `<option>No tienes productos publicados</option>`;
-            return;
+    /* ==========================
+       CARGAR INFO USUARIO
+    =========================== */
+    function cargarInfoUsuario() {
+      const usuarioStr = localStorage.getItem('usuario');
+      if (usuarioStr) {
+        try {
+          const usuario = JSON.parse(usuarioStr);
+          if (usuario.nombre) {
+            document.getElementById('sidebar-name').textContent = usuario.nombre;
+            
+            const iniciales = usuario.nombre.split(' ')
+              .map(n => n[0])
+              .join('')
+              .toUpperCase()
+              .substring(0, 2);
+            document.getElementById('sidebar-avatar').textContent = iniciales;
+          }
+        } catch (e) {
+          console.error('Error parseando usuario:', e);
+        }
+      }
+    }
+
+    cargarInfoUsuario();
+
+    /* ==========================
+           MENÚ
+    =========================== */
+    const sidebar = document.getElementById("sidebar");
+    const overlay = document.getElementById("overlay");
+
+    function openMenu() {
+      sidebar.style.width = "280px";
+      overlay.style.display = "block";
+    }
+
+    function closeMenu() {
+      sidebar.style.width = "0";
+      overlay.style.display = "none";
+    }
+
+    /* ==========================
+        Vista previa imagen
+    =========================== */
+    function mostrarVistaPrevia(event) {
+      const img = document.getElementById("vistaPrevia");
+      const file = event.target.files[0];
+      
+      if (file) {
+        // Validar tamaño máximo 5MB
+        if (file.size > 5 * 1024 * 1024) {
+          alert('La imagen es muy grande. Máximo 5MB');
+          event.target.value = '';
+          return;
+        }
+        
+        // Validar tipo
+        if (!file.type.startsWith('image/')) {
+          alert('Solo se permiten imágenes');
+          event.target.value = '';
+          return;
+        }
+        
+        img.src = URL.createObjectURL(file);
+        img.style.display = "block";
+      }
+    }
+
+    /* ==========================
+          ENVIAR SUBASTA
+    =========================== */
+    document.getElementById("formSubasta").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      console.log("📤 Iniciando envío de subasta...");
+
+      // ✅ OBTENER ID USUARIO CORRECTAMENTE
+      const usuarioStr = localStorage.getItem("usuario");
+
+      if (!usuarioStr) {
+        alert("Error: No se encontró el ID de usuario. Inicia sesión nuevamente.");
+        window.location.href = 'login.html';
+        return;
+      }
+
+      let idUsuario;
+      try {
+        const usuario = JSON.parse(usuarioStr);
+        idUsuario = usuario.id || usuario.id_usuario;
+        
+        if (!idUsuario) {
+          throw new Error('ID de usuario no encontrado');
+        }
+        
+        console.log("✅ ID Usuario:", idUsuario);
+      } catch (error) {
+        console.error("❌ Error parseando usuario:", error);
+        alert("Error con la sesión. Inicia sesión nuevamente.");
+        window.location.href = 'login.html';
+        return;
+      }
+
+      // Deshabilitar botón
+      const btnSubmit = document.getElementById('btnSubmit');
+      btnSubmit.disabled = true;
+      btnSubmit.textContent = 'Publicando...';
+
+      const formData = new FormData(e.target);
+      formData.append("id_usuario", idUsuario);
+
+      // Log de datos
+      console.log("📋 Datos a enviar:");
+      for (let [key, value] of formData.entries()) {
+        if (key !== 'foto') {
+          console.log(`  ${key}: ${value}`);
+        } else {
+          console.log(`  foto: ${value.name} (${value.size} bytes)`);
+        }
+      }
+
+      try {
+        // ✅ CORREGIDO: Una sola barra diagonal
+        console.log("🌐 Enviando a: http://localhost:5000/crear-subasta");
+        
+        const res = await fetch("http://localhost:5000/crear-subasta", {
+          method: "POST",
+          body: formData
+        });
+
+        console.log("📡 Status recibido:", res.status);
+
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
         }
 
-        select.innerHTML = "";
-        data.productos.forEach(p => {
-            const opt = document.createElement("option");
-            opt.value = p.id_producto;
-            opt.textContent = p.titulo || "(Sin título)";
-            select.appendChild(opt);
-        });
-
-    } catch (error) {
-        console.error("ERROR FETCH:", error);
-        select.innerHTML = `<option>Error al cargar productos</option>`;
-    }
-}
-
-// Publicar subasta
-document.getElementById("formSubasta").addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const usuario = JSON.parse(localStorage.getItem("usuario"));
-    if (!usuario) {
-        alert("Debes iniciar sesión para publicar una subasta.");
-        return;
-    }
-
-    const id_usuario = usuario.id;
-    const id_producto = document.getElementById("producto").value;
-    const monto = document.getElementById("precio").value;
-
-    if (!id_producto || !monto) {
-        alert("Completa todos los campos.");
-        return;
-    }
-
-    try {
-        const response = await fetch("http://localhost:5000/publicar-subasta", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ id_usuario, id_producto, precio_inicial: monto })
-        });
-        const data = await response.json();
+        const data = await res.json();
+        console.log("📦 Respuesta:", data);
 
         if (data.success) {
-            alert("Subasta publicada con éxito.");
-            window.location.href = "lista_subastas.html";
+          alert("✅ Subasta publicada exitosamente 🎉");
+          window.location.href = "lista-subasta.html";
         } else {
-            alert("Error: " + data.message);
+          alert("❌ Error: " + (data.message || 'Error desconocido'));
+          btnSubmit.disabled = false;
+          btnSubmit.textContent = 'Publicar Subasta';
         }
-    } catch (error) {
-        console.error("ERROR al publicar subasta:", error);
-        alert("Error en la conexión con el servidor.");
-    }
-});
-
-document.addEventListener("DOMContentLoaded", cargarProductos);
-
-</script>
+      } catch (err) {
+        console.error("❌ Error completo:", err);
+        alert("Error al conectar con el servidor. Verifica:\n1. Que el servidor esté corriendo\n2. Que la URL sea correcta");
+        btnSubmit.disabled = false;
+        btnSubmit.textContent = 'Publicar Subasta';
+      }
+    });
+  </script>
 </body>
 </html>

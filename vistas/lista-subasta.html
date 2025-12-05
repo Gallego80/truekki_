@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TRUEKKI - Lista de Subastas</title>
+
+  <!-- Tu barra estilo -->
+   <link rel="stylesheet" href="/css/lista-subasta.css">
+  <link rel="stylesheet" href="../estilos/barra.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+
+<!-- 🔵 Barra superior -->
+<header>
+  <div class="header-content">
+    <h1>TRUEKKI</h1>
+
+    <div class="search-bar">
+      <input type="text" placeholder="Buscar subastas..." id="search-input">
+      <button onclick="buscarSubastas()"><i class="fas fa-search"></i></button>
+    </div>
+
+    <div class="icons">
+      <span class="icon menu-btn" onclick="openMenu()"><i class="fas fa-bars"></i></span>
+    </div>
+  </div>
+</header>
+
+<!-- 🔵 Menú lateral -->
+<div class="sidebar" id="sidebar">
+  <span class="close-btn" onclick="closeMenu()">✖</span>
+
+  <div class="user-info">
+    <div class="user-avatar" id="sidebar-avatar">US</div>
+    <div class="user-name" id="sidebar-name">Usuario</div>
+  </div>
+  <a href="barra.html"><i class="fas fa-gavel"></i> Inicio</a>
+  <a href="publicar_producto.html"><i class="fas fa-plus-circle"></i> Publicar</a>
+  <a href="chat.html"><i class="fas fa-comments"></i> Chats</a>
+  <a href="subastas.html"><i class="fas fa-gavel"></i> Crear Subasta</a>
+
+  <button onclick="logout()" class="cerrar-sesion">
+    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+  </button>
+</div>
+
+<!-- Overlay -->
+<div class="overlay" id="overlay" onclick="closeMenu()"></div>
+
+<!-- ⭐ Contenido -->
+<div class="container">
+  <h2 style="margin: 25px 0; color: var(--primary-color);">Subastas Activas</h2>
+
+  <section class="auctions-grid" id="auctions-grid">
+      <div class="loading-state">
+        <i class="fas fa-spinner fa-spin"></i>
+        <p>Cargando subastas...</p>
+      </div>
+  </section>
+</div>
+
+<!-- ⭐ Footer (igual que tu diseño original) -->
+<footer>
+  <div class="container">
+      <div class="footer-content">
+          <div class="footer-section">
+              <h3>TRUEKKI</h3>
+              <p>Plataforma de intercambios y ventas.</p>
+          </div>
+      </div>
+
+      <div class="copyright">
+          &copy; 2024 TRUEKKI - Todos los derechos reservados
+      </div>
+  </div>
+</footer>
+
+<script>
+  /* ==========================
+        MENÚ LATERAL
+  =========================== */
+  const sidebar = document.getElementById("sidebar");
+  const overlay = document.getElementById("overlay");
+
+  function openMenu() {
+    sidebar.style.width = "280px";
+    overlay.style.display = "block";
+  }
+
+  function closeMenu() {
+    sidebar.style.width = "0";
+    overlay.style.display = "none";
+  }
+
+  /* ==========================
+        CARGAR SUBASTAS
+  =========================== */
+  async function cargarSubastas() {
+    const grid = document.getElementById("auctions-grid");
+
+    try {
+      const res = await fetch("http://localhost:5000/subastas");
+      const data = await res.json();
+
+      if (!data.success) {
+        grid.innerHTML = "<p>Error al cargar subastas</p>";
+        return;
+      }
+
+      grid.innerHTML = "";
+
+      data.subastas.forEach(sub => {
+        const fechaFin = new Date(sub.fecha_fin).getTime();
+
+        const card = document.createElement("div");
+        card.className = "auction-card";
+
+        card.innerHTML = `
+          <img src="http://localhost:5000/subastas/imagen/${sub.id_subasta}" 
+               alt="Producto">
+
+          <div class="auction-info">
+            <div class="auction-title">${sub.titulo}</div>
+
+            <div class="auction-price">
+              Precio actual: $${Number(sub.precio_actual).toLocaleString()}
+            </div>
+
+            <div class="auction-timer" id="timer-${sub.id_subasta}">
+              Cargando...
+            </div>
+
+            <a href="ver-subasta.html?id=${sub.id_subasta}" class="btn-view">
+              Ver subasta
+            </a>
+          </div>
+        `;
+
+        grid.appendChild(card);
+
+        iniciarCuentaRegresiva(sub.id_subasta, fechaFin);
+      });
+
+    } catch (error) {
+      grid.innerHTML = "<p>Error de conexión.</p>";
+    }
+  }
+
+  /* ==========================
+        TIMER EN VIVO
+  =========================== */
+  function iniciarCuentaRegresiva(id, fechaObjetivo) {
+    setInterval(() => {
+      const ahora = new Date().getTime();
+      const distancia = fechaObjetivo - ahora;
+      const el = document.getElementById(`timer-${id}`);
+
+      if (distancia <= 0) {
+        el.innerHTML = "Finalizada";
+        el.style.background = "#ffcfcf";
+        el.style.color = "#8b0000";
+        return;
+      }
+
+      const d = Math.floor(distancia / (1000 * 60 * 60 * 24));
+      const h = Math.floor((distancia % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const m = Math.floor((distancia % (1000 * 60 * 60)) / (1000 * 60));
+      const s = Math.floor((distancia % (1000 * 60)) / 1000);
+
+      el.innerHTML = `${d}d ${h}h ${m}m ${s}s`;
+    }, 1000);
+  }
+
+  /* ==========================
+        BÚSQUEDA (opcional)
+  =========================== */
+  function buscarSubastas() {
+    alert("Búsqueda en implementación");
+  }
+
+  cargarSubastas();
+</script>
+
+</body>
+</html>
